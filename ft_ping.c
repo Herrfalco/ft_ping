@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:52:47 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/12 18:47:20 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/12 23:42:16 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,10 +19,13 @@
 #include <netinet/in.h>
 #include <unistd.h>
 
+#include <errno.h>
+
 #define ICMP_ECHO	8
 
 #define HDR_SZ		8
 #define BODY_SZ		56
+#define IP_HDR_SZ	20
 
 #define TTL			64
 #define TIMEOUT		1
@@ -104,14 +107,25 @@ int	main(int argc, char **argv) {
 		printf("Error: Can't configure socket\n");
 		return (3);
 	}
-	printf("PING %s (%s) X(X) bytes of data.\n",
-			inf ? argv[1] : buff, buff);
+	printf("PING %s (%s) %d(%d) bytes of data.\n",
+			inf ? argv[1] : buff, buff, BODY_SZ, BODY_SZ + HDR_SZ + IP_HDR_SZ);
 
 	pkt.type = ICMP_ECHO;
 	pkt.code = 0;
 	//	pkt.body = { 0 };
 	pkt.sum = checksum(&pkt, sizeof(t_icmp_pkt));
 	pkt.id = getpid();
-	pkt.seq = 0;
-	sendto(sock, &pkt, HDR_SZ + BODY_SZ, 0, soc_ad, sizeof(struct sockaddr));
+	pkt.seq = 666;
+	if (sendto(sock, &pkt, sizeof(t_icmp_pkt), 0, soc_ad, sizeof(struct sockaddr)) < 0 ) {
+		printf("Error: Can't send ping\n");
+		return (4);
+	}
+
+	struct msghdr	msg;
+	printf("%ld\n", recvmsg(sock, &msg, 0));
+	/*
+	if (recvmsg(sock, &msg, 0) < 0) {
+		printf("Error: Can't receive ping\n");
+	}
+	*/
 }
