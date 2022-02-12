@@ -6,9 +6,11 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:52:47 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/12 23:42:16 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/13 00:57:44 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+//to test on localhost sudo tcpdump -vi lo icmp and icmp[icmptype]=icmp-echo
 
 #include <stdio.h>
 #include <arpa/inet.h>
@@ -33,10 +35,10 @@
 typedef struct		s_icmp_pkt {
 	uint8_t			type;
 	uint8_t			code;
-	uint16_t		sum;
+	int16_t			sum;
 	uint16_t		id;
 	uint16_t		seq;
-	char			body[BODY_SZ];
+	uint8_t			body[BODY_SZ];
 }					t_icmp_pkt;
 
 struct addrinfo		create_hints(void) {
@@ -47,6 +49,10 @@ struct addrinfo		create_hints(void) {
 	hints.ai_protocol = IPPROTO_ICMP;
 	hints.ai_flags = 0;
 	return (hints);
+}
+
+uint16_t	b_endian(uint16_t src) {
+	return ((src >> 8) | (src << 8));
 }
 
 uint16_t	checksum(void *body, int size) {
@@ -111,21 +117,16 @@ int	main(int argc, char **argv) {
 			inf ? argv[1] : buff, buff, BODY_SZ, BODY_SZ + HDR_SZ + IP_HDR_SZ);
 
 	pkt.type = ICMP_ECHO;
-	pkt.code = 0;
-	//	pkt.body = { 0 };
+	pkt.id = b_endian(1);//getpid();
+	pkt.seq = b_endian(2);
 	pkt.sum = checksum(&pkt, sizeof(t_icmp_pkt));
-	pkt.id = getpid();
-	pkt.seq = 666;
 	if (sendto(sock, &pkt, sizeof(t_icmp_pkt), 0, soc_ad, sizeof(struct sockaddr)) < 0 ) {
 		printf("Error: Can't send ping\n");
 		return (4);
 	}
 
 	struct msghdr	msg;
-	printf("%ld\n", recvmsg(sock, &msg, 0));
-	/*
 	if (recvmsg(sock, &msg, 0) < 0) {
 		printf("Error: Can't receive ping\n");
 	}
-	*/
 }
