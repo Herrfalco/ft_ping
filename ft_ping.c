@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:52:47 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/12 13:57:18 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/12 18:47:20 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,23 @@
 #include <netinet/in.h>
 #include <unistd.h>
 
+#define ICMP_ECHO	8
+
+#define HDR_SZ		8
+#define BODY_SZ		56
+
+#define TTL			64
+#define TIMEOUT		1
+
+typedef struct		s_icmp_pkt {
+	uint8_t			type;
+	uint8_t			code;
+	uint16_t		sum;
+	uint16_t		id;
+	uint16_t		seq;
+	char			body[BODY_SZ];
+}					t_icmp_pkt;
+
 struct addrinfo		create_hints(void) {
 	struct addrinfo		hints = { 0 };
 
@@ -27,6 +44,19 @@ struct addrinfo		create_hints(void) {
 	hints.ai_protocol = IPPROTO_ICMP;
 	hints.ai_flags = 0;
 	return (hints);
+}
+
+uint16_t	checksum(void *body, int size) {
+	uint16_t	*data = body;
+	uint32_t	result = 0;
+
+	for (; size > 1; size -= 2)
+		result += *(data++);		
+	if (size)
+		result += *((uint8_t *)data);
+	while (result >> 16)
+		result = (result & 0xffff) + (result >> 16);
+	return (~result);
 }
 
 int	main(int argc, char **argv) {
@@ -43,8 +73,11 @@ int	main(int argc, char **argv) {
 	struct addrinfo		*inf = NULL;
 	struct sockaddr_in	soc_ad_in = { 0 };
 	struct sockaddr		*soc_ad = (struct sockaddr *)&soc_ad_in;
+	uint8_t				ttl = TTL;
+	struct timeval		timeout = { 0 };
 	char				buff[INET_ADDRSTRLEN] = { 0 };
 	int					sock = 0;
+	t_icmp_pkt			pkt = { 0 };
 
 	if (inet_pton(AF_INET, argv[1], &ip) == 1) {
 		soc_ad_in.sin_family = AF_INET;
@@ -64,8 +97,21 @@ int	main(int argc, char **argv) {
 		printf("Error: Can't create socket\n");
 		return (3);
 	}
+
+	timeout.tv_sec = TIMEOUT;
+	if (setsockopt(sock, IPPROTO_IP, IP_TTL, &ttl, sizeof(uint8_t))
+			|| setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(struct timeval))) {
+		printf("Error: Can't configure socket\n");
+		return (3);
+	}
 	printf("PING %s (%s) X(X) bytes of data.\n",
 			inf ? argv[1] : buff, buff);
 
-	sendto(sock, "bonjour", 8, 0, soc_ad, sizeof(struct sockaddr));
+	pkt.type = ICMP_ECHO;
+	pkt.code = 0;
+	//	pkt.body = { 0 };
+	pkt.sum = checksum(&pkt, sizeof(t_icmp_pkt));
+	pkt.id = getpid();
+	pkt.seq = 0;
+	sendto(sock, &pkt, HDR_SZ + BODY_SZ, 0, soc_ad, sizeof(struct sockaddr));
 }
