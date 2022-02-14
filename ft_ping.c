@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:52:47 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/14 18:38:08 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/14 20:37:03 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 //think about stderror
 //think about deleting unused var and includes
 //free in general and if exit or signal
+//free pendlist and if exit or signal
 //check all possible errors and failing ways
 
 #include <stdio.h>
@@ -52,15 +53,69 @@ typedef struct					s_ip_pkt {
 	t_icmp_pkt					icmp_pkt;
 } __attribute__((packed))		t_ip_pkt;
 
+typedef struct					s_pending {
+	struct timeval				since;
+	uint16_t					seq;
+	struct s_pending			*next;
+}								t_pending;
+
 typedef struct					s_glob {
 	struct sockaddr_in			targ_in;
 	char						targ_addr[INET_ADDRSTRLEN];
 	char						*targ_name;
 	int							sock;
 	int							pid;
+	t_pending					*pend_lst;
 }								t_glob;
 
 t_glob							glob = { 0 };
+
+struct timeval	duration(struct timeval start, struct timeval end) {
+	struct timeval		result = { 0 };	
+	int					tmp;
+
+	result.tv_sec = end.tv_sec - start.tv_sec;
+	if ((tmp = end.tv_usec - start.tv_usec) < 0) {
+		--result.tv_sec;
+		result.tv_usec = 1000000 + tmp;
+	} else {
+		result.tv_usec = tmp;
+	}
+	return (result);
+}
+
+void		add_pend(uint16_t seq) {
+	t_pending		*new = malloc(sizeof(t_pending));
+
+	if (!new) {
+		printf("Error: Can't allocate enough ressources\n");
+		exit(6);
+	}
+	gettimeofday(&new->since, NULL);
+	new->seq = seq;
+	new->next = glob.pend_lst;
+	glob.pend_lst = new;
+}
+
+int			take_pend(uint16_t seq, struct timeval *dur) {
+	t_pending		*prev = NULL;
+	t_pending		*elem = glob.pend_lst;
+	struct timeval	now;
+
+
+	for (elem = glob.pend_lst; elem && elem->seq != seq; elem = elem->next)
+		prev = elem;	
+	if (!elem)
+		return (1);
+	gettimeofday(&now, NULL);
+	*dur = duration(elem->since, now);
+	if (prev)
+		prev->next = elem->next;
+	else
+		glob.pend_lst = elem->next;
+	free(elem);
+	return (0);
+}
 
 struct addrinfo		create_hints(void) {
 	struct addrinfo		hints = { 0 };
@@ -124,6 +179,7 @@ void	ping(int signum) {
 		printf("Error: Can't send ping\n");
 		return;
 	}
+	add_pend(seq);
 	/*
 	printf("PING: type: %d, code: %d, sum: %x, id: %d, seq: %d\n",
 		pkt.type, pkt.code, pkt.sum, id, seq);
@@ -139,6 +195,7 @@ void	pong(void) {
 			.iov_len = sizeof(t_ip_pkt),
 		};
 		struct msghdr		msg = { 0 };
+		struct timeval		dur = { 0 };
 		int					ret_val = 0;
 
 		msg.msg_iov = &io_vec;
@@ -149,9 +206,11 @@ void	pong(void) {
 		}
 		if (r_pkt.icmp_pkt.id != endian_sw(glob.pid))
 			return;
-		printf("%d bytes from %s: icmp_seq=%d ttl=%d time=?\n",
+		if (take_pend(endian_sw(r_pkt.icmp_pkt.seq), &dur))
+			return;
+		printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.1f ms\n",
 				ret_val - IP_HDR_SZ, glob.targ_addr, endian_sw(r_pkt.icmp_pkt.seq),
-				r_pkt.ip_hdr[TTL_IDX]);
+				r_pkt.ip_hdr[TTL_IDX], dur.tv_sec + dur.tv_usec / 1000.);
 		//print_body(r_pkt.icmp_pkt.body);
 }
 
@@ -194,6 +253,7 @@ int		create_sock(void) {
 	}
 	return (0);
 }
+
 
 int	main(int argc, char **argv) {
 	if (argc != 2) {
