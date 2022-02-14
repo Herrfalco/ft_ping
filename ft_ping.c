@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:52:47 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/14 16:49:31 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/14 18:38:08 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,8 @@
 //unordered packet		sudo tc qdisc change dev lo root netem delay 0ms 2000ms 50%
 //think about stderror
 //think about deleting unused var and includes
+//free in general and if exit or signal
+//check all possible errors and failing ways
 
 #include <stdio.h>
 #include <arpa/inet.h>
@@ -30,6 +32,7 @@
 #define HDR_SZ		8
 #define BODY_SZ		56 // Must be divisible by 4
 #define IP_HDR_SZ	20
+#define TTL_IDX		8
 
 #define TTL			64
 //#define TIMEOUT		1
@@ -50,8 +53,11 @@ typedef struct					s_ip_pkt {
 } __attribute__((packed))		t_ip_pkt;
 
 typedef struct					s_glob {
-	struct sockaddr_in			soc_ad_in;
-	int							soc;
+	struct sockaddr_in			targ_in;
+	char						targ_addr[INET_ADDRSTRLEN];
+	char						*targ_name;
+	int							sock;
+	int							pid;
 }								t_glob;
 
 t_glob							glob = { 0 };
@@ -72,7 +78,7 @@ void		fill_body(uint8_t *body, uint32_t pat) {
 		bod[i] = pat;
 }
 
-//debug purpose
+/*
 void		print_body(uint8_t *body) {
 	uint32_t	*bod = (uint32_t *)body;
 
@@ -84,6 +90,7 @@ void		print_body(uint8_t *body) {
 				bod[i] & 0xff);
 	}
 }
+*/
 
 uint16_t	endian_sw(uint16_t src) {
 	return ((src >> 8) | (src << 8));
@@ -102,29 +109,93 @@ uint16_t	checksum(void *body, int size) {
 	return (~result);
 }
 
-void	send_ping(int signum) {
-	// Send ping
-	struct sockaddr			*soc_ad = (struct sockaddr *)&glob.soc_ad_in;
-	t_icmp_pkt				pkt = { 0 };
+void	ping(int signum) {
+	struct sockaddr			*targ = (struct sockaddr *)&glob.targ_in;
 	static unsigned int		seq = 0;
-	unsigned int			id = getpid();
+	t_icmp_pkt				pkt = { 0 };
 
+	(void)signum;
 	pkt.type = ICMP_ECHO;
-	pkt.id = endian_sw(id);
+	pkt.id = endian_sw(glob.pid);
 	pkt.seq = endian_sw(++seq);
 	fill_body(pkt.body, 0xaabbccdd);
 	pkt.sum = checksum(&pkt, sizeof(t_icmp_pkt));
-	if (sendto(glob.soc, &pkt, sizeof(t_icmp_pkt), 0, soc_ad, sizeof(struct sockaddr)) < 0 ) {
+	if (sendto(glob.sock, &pkt, sizeof(t_icmp_pkt), 0, targ, sizeof(struct sockaddr)) < 0 ) {
 		printf("Error: Can't send ping\n");
 		return;
 	}
+	/*
 	printf("PING: type: %d, code: %d, sum: %x, id: %d, seq: %d\n",
 		pkt.type, pkt.code, pkt.sum, id, seq);
+		*/
+	//print_body(pkt.body);
 	alarm(PING_INT);
 }
 
+void	pong(void) {
+		t_ip_pkt			r_pkt = { 0 };
+		struct iovec		io_vec =  {
+			.iov_base = &r_pkt,
+			.iov_len = sizeof(t_ip_pkt),
+		};
+		struct msghdr		msg = { 0 };
+		int					ret_val = 0;
+
+		msg.msg_iov = &io_vec;
+		msg.msg_iovlen = 1;
+		if ((ret_val = recvmsg(glob.sock, &msg, 0)) < 0) {
+			printf("Error: Can't receive ping\n");
+			return;
+		}
+		if (r_pkt.icmp_pkt.id != endian_sw(glob.pid))
+			return;
+		printf("%d bytes from %s: icmp_seq=%d ttl=%d time=?\n",
+				ret_val - IP_HDR_SZ, glob.targ_addr, endian_sw(r_pkt.icmp_pkt.seq),
+				r_pkt.ip_hdr[TTL_IDX]);
+		//print_body(r_pkt.icmp_pkt.body);
+}
+
+int		find_targ(char *arg) {
+	struct in_addr		ip = { 0 };
+	struct addrinfo		hints = create_hints();
+	struct addrinfo		*inf = NULL;
+
+	if (inet_pton(AF_INET, arg, &ip) == 1) {
+		glob.targ_in.sin_family = AF_INET;
+		glob.targ_in.sin_addr = ip;
+		inet_ntop(AF_INET, &ip, glob.targ_addr, INET_ADDRSTRLEN);
+	} else if ((getaddrinfo(arg, NULL, &hints, &inf) == 0)) {
+		//check free if error
+		glob.targ_in = *((struct sockaddr_in *)inf->ai_addr);
+		freeaddrinfo(inf);
+		inet_ntop(AF_INET,
+			&glob.targ_in.sin_addr,
+			glob.targ_addr, INET_ADDRSTRLEN);
+		glob.targ_name = arg;
+	} else  {
+		printf("Error: Invalid domain\n");
+		return (1);
+	}
+	return (0);
+}
+
+int		create_sock(void) {
+	uint8_t				ttl = TTL;
+	//struct timeval		timeout = { 0 };
+
+	if ((glob.sock = socket(PF_INET, SOCK_RAW, IPPROTO_ICMP)) < 0) {
+		printf("Error: Can't create socket\n");
+		return (1);
+	}
+	//timeout.tv_sec = TIMEOUT;
+	if (setsockopt(glob.sock, IPPROTO_IP, IP_TTL, &ttl, sizeof(uint8_t))) {
+		printf("Error: Can't configure socket\n");
+		return (2);
+	}
+	return (0);
+}
+
 int	main(int argc, char **argv) {
-	// Check perms
 	if (argc != 2) {
 		printf("Error: Wrong number of arguments\n");
 		return (1);
@@ -133,70 +204,20 @@ int	main(int argc, char **argv) {
 		return (2);
 	}
 
-	// Find target address
-	struct in_addr		ip = { 0 };
-	struct addrinfo		hints = create_hints();
-	struct addrinfo		*inf = NULL;
-	char				addr_str[INET_ADDRSTRLEN] = "";
+	int		ret_val = 0;
 
-	if (inet_pton(AF_INET, argv[1], &ip) == 1) {
-		glob.soc_ad_in.sin_family = AF_INET;
-		glob.soc_ad_in.sin_addr = ip;
-		inet_ntop(AF_INET, &ip, addr_str, INET_ADDRSTRLEN);
-	} else if ((getaddrinfo(argv[1], NULL, &hints, &inf) == 0)) {
-		glob.soc_ad_in = *((struct sockaddr_in *)inf->ai_addr);
-		freeaddrinfo(inf);
-		inet_ntop(AF_INET,
-				&glob.soc_ad_in.sin_addr,
-				addr_str, INET_ADDRSTRLEN);
-	} else  {
-		printf("Error: Invalid domain\n");
-		return (1);
-	}
+	if ((ret_val = find_targ(argv[1])))
+		return (ret_val);
 	printf("PING %s (%s) %d(%d) bytes of data.\n",
-			inf ? argv[1] : addr_str, addr_str, BODY_SZ, BODY_SZ + HDR_SZ + IP_HDR_SZ);
+			glob.targ_name ? glob.targ_name : glob.targ_addr, glob.targ_addr,
+			BODY_SZ, BODY_SZ + HDR_SZ + IP_HDR_SZ);
+	if ((ret_val = create_sock()))
+		return (ret_val);
 
-	// Create and configure socket
-	//int					sock = 0;
-	uint8_t				ttl = TTL;
-	//struct timeval		timeout = { 0 };
-
-	if ((glob.soc = socket(PF_INET, SOCK_RAW, IPPROTO_ICMP)) < 0) {
-		printf("Error: Can't create socket\n");
-		return (3);
-	}
-	//timeout.tv_sec = TIMEOUT;
-	if (setsockopt(glob.soc, IPPROTO_IP, IP_TTL, &ttl, sizeof(uint8_t))) {
-		printf("Error: Can't configure socket\n");
-		return (3);
-	}
-
-	signal(SIGALRM, send_ping);
-	send_ping(0);
+	glob.pid = getpid();
+	signal(SIGALRM, ping);
+	ping(0);
 	alarm(PING_INT);
-
-	// Get pong
-	while (42) {
-		struct msghdr		msg = { 0 };
-		t_ip_pkt			r_pkt = { 0 };
-		struct iovec		io_vec =  {
-			.iov_base = &r_pkt,
-			.iov_len = sizeof(t_ip_pkt),
-		};
-
-		msg.msg_iov = &io_vec;
-		msg.msg_iovlen = 1;
-		if (recvmsg(glob.soc, &msg, 0) < 0) {
-			printf("Error: Can't receive ping\n");
-			return (5);
-		}
-
-		printf("  PONG: type: %d, code: %d, sum: %x, id: %d, seq: %d\n",
-				r_pkt.icmp_pkt.type,
-				r_pkt.icmp_pkt.code,
-				r_pkt.icmp_pkt.sum,
-				endian_sw(r_pkt.icmp_pkt.id),
-				endian_sw(r_pkt.icmp_pkt.seq));
-		//		print_body(r_pkt.icmp_pkt.body);
-	}
+	while (42)
+		pong();
 }
