@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:52:47 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/14 20:37:03 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/15 18:44:32 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,104 +17,26 @@
 //free in general and if exit or signal
 //free pendlist and if exit or signal
 //check all possible errors and failing ways
+//verify pong integrety
+//check number format
+//test rtt when no packets are received
+//check division by 0 
 
-#include <stdio.h>
-#include <arpa/inet.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <signal.h>
+#include "header.h"
 
-#define ICMP_ECHO	8
+void		quit(int signum) {
+	struct timeval		now;
 
-#define HDR_SZ		8
-#define BODY_SZ		56 // Must be divisible by 4
-#define IP_HDR_SZ	20
-#define TTL_IDX		8
-
-#define TTL			64
-//#define TIMEOUT		1
-#define PING_INT	1
-
-typedef struct					s_icmp_pkt {
-	uint8_t						type;
-	uint8_t						code;
-	int16_t						sum;
-	uint16_t					id;
-	uint16_t					seq;
-	uint8_t						body[BODY_SZ];
-} __attribute__((packed))		t_icmp_pkt;
-
-typedef struct					s_ip_pkt {
-	uint8_t						ip_hdr[IP_HDR_SZ];
-	t_icmp_pkt					icmp_pkt;
-} __attribute__((packed))		t_ip_pkt;
-
-typedef struct					s_pending {
-	struct timeval				since;
-	uint16_t					seq;
-	struct s_pending			*next;
-}								t_pending;
-
-typedef struct					s_glob {
-	struct sockaddr_in			targ_in;
-	char						targ_addr[INET_ADDRSTRLEN];
-	char						*targ_name;
-	int							sock;
-	int							pid;
-	t_pending					*pend_lst;
-}								t_glob;
-
-t_glob							glob = { 0 };
-
-struct timeval	duration(struct timeval start, struct timeval end) {
-	struct timeval		result = { 0 };	
-	int					tmp;
-
-	result.tv_sec = end.tv_sec - start.tv_sec;
-	if ((tmp = end.tv_usec - start.tv_usec) < 0) {
-		--result.tv_sec;
-		result.tv_usec = 1000000 + tmp;
-	} else {
-		result.tv_usec = tmp;
-	}
-	return (result);
-}
-
-void		add_pend(uint16_t seq) {
-	t_pending		*new = malloc(sizeof(t_pending));
-
-	if (!new) {
-		printf("Error: Can't allocate enough ressources\n");
-		exit(6);
-	}
-	gettimeofday(&new->since, NULL);
-	new->seq = seq;
-	new->next = glob.pend_lst;
-	glob.pend_lst = new;
-}
-
-int			take_pend(uint16_t seq, struct timeval *dur) {
-	t_pending		*prev = NULL;
-	t_pending		*elem = glob.pend_lst;
-	struct timeval	now;
-
-
-	for (elem = glob.pend_lst; elem && elem->seq != seq; elem = elem->next)
-		prev = elem;	
-	if (!elem)
-		return (1);
+	(void)signum;	
 	gettimeofday(&now, NULL);
-	*dur = duration(elem->since, now);
-	if (prev)
-		prev->next = elem->next;
-	else
-		glob.pend_lst = elem->next;
-	free(elem);
-	return (0);
+	printf("\n--- %s ping statistics ---\n", glob.targ.name ? glob.targ.name : glob.targ.addr);
+	printf("%ld packets transmitted, %ld received, %g%% packet loss, time %dms\n",
+		glob.pngs.i.size, glob.pngs.o.size, 100. - (glob.pngs.o.size * 100. / glob.pngs.i.size),
+		(unsigned int)(time_2_ms(duration(glob.start, now))));
+	printf("rtt min/avg/max/mdev = %.3f/%.3f/%.3f/%.3f ms\n",
+		fold_pongs(min_acc), fold_pongs(avg_acc), fold_pongs(max_acc), fold_pongs(mdev_acc));
+	free_pngs();
+	exit(0);
 }
 
 struct addrinfo		create_hints(void) {
@@ -134,38 +56,21 @@ void		fill_body(uint8_t *body, uint32_t pat) {
 }
 
 /*
-void		print_body(uint8_t *body) {
-	uint32_t	*bod = (uint32_t *)body;
+   void		print_body(uint8_t *body) {
+   uint32_t	*bod = (uint32_t *)body;
 
-	for (unsigned int i = 0; i < BODY_SZ / 4; ++i) {
-		printf("%02x %02x %02x %02x\n",
-				bod[i] >> 0x18,
-				(bod[i] >> 0x10)  & 0xff,
-				(bod[i] >> 0x8)  & 0xff,
-				bod[i] & 0xff);
-	}
-}
-*/
-
-uint16_t	endian_sw(uint16_t src) {
-	return ((src >> 8) | (src << 8));
-}
-
-uint16_t	checksum(void *body, int size) {
-	uint16_t	*data = body;
-	uint32_t	result = 0;
-
-	for (; size > 1; size -= 2)
-		result += *(data++);		
-	if (size)
-		result += *((uint8_t *)data);
-	while (result >> 16)
-		result = (result & 0xffff) + (result >> 16);
-	return (~result);
-}
+   for (unsigned int i = 0; i < BODY_SZ / 4; ++i) {
+   printf("%02x %02x %02x %02x\n",
+   bod[i] >> 0x18,
+   (bod[i] >> 0x10)  & 0xff,
+   (bod[i] >> 0x8)  & 0xff,
+   bod[i] & 0xff);
+   }
+   }
+ */
 
 void	ping(int signum) {
-	struct sockaddr			*targ = (struct sockaddr *)&glob.targ_in;
+	struct sockaddr			*targ = (struct sockaddr *)&glob.targ.in;
 	static unsigned int		seq = 0;
 	t_icmp_pkt				pkt = { 0 };
 
@@ -179,39 +84,34 @@ void	ping(int signum) {
 		printf("Error: Can't send ping\n");
 		return;
 	}
-	add_pend(seq);
-	/*
-	printf("PING: type: %d, code: %d, sum: %x, id: %d, seq: %d\n",
-		pkt.type, pkt.code, pkt.sum, id, seq);
-		*/
-	//print_body(pkt.body);
+	new_ping(seq);
 	alarm(PING_INT);
 }
 
 void	pong(void) {
-		t_ip_pkt			r_pkt = { 0 };
-		struct iovec		io_vec =  {
-			.iov_base = &r_pkt,
-			.iov_len = sizeof(t_ip_pkt),
-		};
-		struct msghdr		msg = { 0 };
-		struct timeval		dur = { 0 };
-		int					ret_val = 0;
+	t_ip_pkt			r_pkt = { 0 };
+	struct msghdr		msg = { 0 };
+	t_elem				*pong;
+	int					ret_val = 0;
+	struct iovec		io_vec =  {
+		.iov_base = &r_pkt,
+		.iov_len = sizeof(t_ip_pkt),
+	};
 
-		msg.msg_iov = &io_vec;
-		msg.msg_iovlen = 1;
-		if ((ret_val = recvmsg(glob.sock, &msg, 0)) < 0) {
-			printf("Error: Can't receive ping\n");
-			return;
-		}
-		if (r_pkt.icmp_pkt.id != endian_sw(glob.pid))
-			return;
-		if (take_pend(endian_sw(r_pkt.icmp_pkt.seq), &dur))
-			return;
-		printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.1f ms\n",
-				ret_val - IP_HDR_SZ, glob.targ_addr, endian_sw(r_pkt.icmp_pkt.seq),
-				r_pkt.ip_hdr[TTL_IDX], dur.tv_sec + dur.tv_usec / 1000.);
-		//print_body(r_pkt.icmp_pkt.body);
+	msg.msg_iov = &io_vec;
+	msg.msg_iovlen = 1;
+	if ((ret_val = recvmsg(glob.sock, &msg, 0)) < 0) {
+		printf("Error: Can't receive ping\n");
+		return;
+	}
+	if (r_pkt.icmp_pkt.id != endian_sw(glob.pid))
+		return;
+	if (!(pong = ping_2_pong(endian_sw(r_pkt.icmp_pkt.seq))))
+		return;
+	printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.15g ms\n",
+			ret_val - IP_HDR_SZ, glob.targ.addr, endian_sw(r_pkt.icmp_pkt.seq),
+			r_pkt.ip_hdr[TTL_IDX], time_2_ms(pong->time));
+	//print_body(r_pkt.icmp_pkt.body);
 }
 
 int		find_targ(char *arg) {
@@ -220,17 +120,17 @@ int		find_targ(char *arg) {
 	struct addrinfo		*inf = NULL;
 
 	if (inet_pton(AF_INET, arg, &ip) == 1) {
-		glob.targ_in.sin_family = AF_INET;
-		glob.targ_in.sin_addr = ip;
-		inet_ntop(AF_INET, &ip, glob.targ_addr, INET_ADDRSTRLEN);
+		glob.targ.in.sin_family = AF_INET;
+		glob.targ.in.sin_addr = ip;
+		inet_ntop(AF_INET, &ip, glob.targ.addr, INET_ADDRSTRLEN);
 	} else if ((getaddrinfo(arg, NULL, &hints, &inf) == 0)) {
 		//check free if error
-		glob.targ_in = *((struct sockaddr_in *)inf->ai_addr);
+		glob.targ.in = *((struct sockaddr_in *)inf->ai_addr);
 		freeaddrinfo(inf);
 		inet_ntop(AF_INET,
-			&glob.targ_in.sin_addr,
-			glob.targ_addr, INET_ADDRSTRLEN);
-		glob.targ_name = arg;
+				&glob.targ.in.sin_addr,
+				glob.targ.addr, INET_ADDRSTRLEN);
+		glob.targ.name = arg;
 	} else  {
 		printf("Error: Invalid domain\n");
 		return (1);
@@ -240,13 +140,11 @@ int		find_targ(char *arg) {
 
 int		create_sock(void) {
 	uint8_t				ttl = TTL;
-	//struct timeval		timeout = { 0 };
 
 	if ((glob.sock = socket(PF_INET, SOCK_RAW, IPPROTO_ICMP)) < 0) {
 		printf("Error: Can't create socket\n");
 		return (1);
 	}
-	//timeout.tv_sec = TIMEOUT;
 	if (setsockopt(glob.sock, IPPROTO_IP, IP_TTL, &ttl, sizeof(uint8_t))) {
 		printf("Error: Can't configure socket\n");
 		return (2);
@@ -254,8 +152,9 @@ int		create_sock(void) {
 	return (0);
 }
 
-
 int	main(int argc, char **argv) {
+	int		ret_val = 0;
+
 	if (argc != 2) {
 		printf("Error: Wrong number of arguments\n");
 		return (1);
@@ -264,18 +163,18 @@ int	main(int argc, char **argv) {
 		return (2);
 	}
 
-	int		ret_val = 0;
-
 	if ((ret_val = find_targ(argv[1])))
 		return (ret_val);
 	printf("PING %s (%s) %d(%d) bytes of data.\n",
-			glob.targ_name ? glob.targ_name : glob.targ_addr, glob.targ_addr,
+			glob.targ.name ? glob.targ.name : glob.targ.addr, glob.targ.addr,
 			BODY_SZ, BODY_SZ + HDR_SZ + IP_HDR_SZ);
 	if ((ret_val = create_sock()))
 		return (ret_val);
 
 	glob.pid = getpid();
+	gettimeofday(&glob.start, NULL);
 	signal(SIGALRM, ping);
+	signal(SIGINT, quit);
 	ping(0);
 	alarm(PING_INT);
 	while (42)
