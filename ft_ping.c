@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:52:47 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/15 18:44:32 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/15 19:59:18 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,8 @@
 //check division by 0 
 
 #include "header.h"
+
+t_glob		glob = { 0 };
 
 void		quit(int signum) {
 	struct timeval		now;

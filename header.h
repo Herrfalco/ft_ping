@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 18:05:08 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/15 19:46:39 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/15 19:59:04 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,7 +90,7 @@ typedef struct					s_glob {
 	t_acc						acc;
 }								t_glob;
 
-t_glob							glob = { 0 };
+extern t_glob					glob;
 
 uint16_t						endian_sw(uint16_t src);
 uint16_t						checksum(void *body, int size);
