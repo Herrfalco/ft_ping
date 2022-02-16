@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 18:05:08 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/15 19:59:04 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/16 16:03:13 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <signal.h>
-#include <math.h>
+#include <limits.h>
 
 #define ICMP_ECHO				8
 
@@ -76,8 +76,8 @@ typedef struct					s_pngs {
 }								t_pngs;
 
 typedef struct					s_acc {
-	double						val;
-	double						tmp;
+	long long					val;
+	long long					tmp;
 	t_bool						flag;
 }								t_acc;
 
@@ -95,17 +95,18 @@ extern t_glob					glob;
 uint16_t						endian_sw(uint16_t src);
 uint16_t						checksum(void *body, int size);
 void							mem_set(void *data, size_t size, uint8_t val);
-double							time_2_ms(struct timeval tv);
+long long						time_2_us(struct timeval tv);
 struct timeval					duration(struct timeval start, struct timeval end);
+long							llsqrt(long long nb);
 
 void							new_ping(uint16_t seq);
 t_elem							*ping_2_pong(uint16_t seq);
 void							free_pngs(void);
 
-double							min_acc(t_elem *el);
-double							max_acc(t_elem *el);
-double							avg_acc(t_elem *el);
-double							mdev_acc(t_elem *el);
-double							fold_pongs(double (*acc)(t_elem *));
+long long						min_acc(t_elem *el);
+long long						max_acc(t_elem *el);
+long long						avg_acc(t_elem *el);
+long long						mdev_acc(t_elem *el);
+long long						fold_pongs(long long (*acc)(t_elem *));
 
 #endif //HEADER_H

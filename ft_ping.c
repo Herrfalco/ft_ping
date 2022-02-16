@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:52:47 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/15 19:59:18 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/16 16:19:52 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,24 +21,70 @@
 //check number format
 //test rtt when no packets are received
 //check division by 0 
+//handle
+/*
+	if (dupflag && (!multicast || rts->opt_verbose))
+	    printf(_(" (DUP!)"));
+	if (csfailed)
+	    printf(_(" (BAD CHECKSUM!)"));
+	if (wrong_source)
+	    printf(_(" (DIFFERENT ADDRESS!)"));
+*/
+/*
+	if (rts->nrepeats)
+		printf(_(", +%ld duplicates"), rts->nrepeats);
+	if (rts->nchecksum)
+		printf(_(", +%ld corrupted"), rts->nchecksum);
+	if (rts->nerrors)
+		printf(_(", +%ld errors"), rts->nerrors);
+*/
+//handle backward time
 
 #include "header.h"
 
 t_glob		glob = { 0 };
 
-void		quit(int signum) {
+void		sig_int(int signum) {
 	struct timeval		now;
+	long long			min, max, avg, mdev;
 
 	(void)signum;	
 	gettimeofday(&now, NULL);
 	printf("\n--- %s ping statistics ---\n", glob.targ.name ? glob.targ.name : glob.targ.addr);
-	printf("%ld packets transmitted, %ld received, %g%% packet loss, time %dms\n",
+	printf("%ld packets transmitted, %ld received, %g%% packet loss, time %lldms\n",
 		glob.pngs.i.size, glob.pngs.o.size, 100. - (glob.pngs.o.size * 100. / glob.pngs.i.size),
-		(unsigned int)(time_2_ms(duration(glob.start, now))));
-	printf("rtt min/avg/max/mdev = %.3f/%.3f/%.3f/%.3f ms\n",
-		fold_pongs(min_acc), fold_pongs(avg_acc), fold_pongs(max_acc), fold_pongs(mdev_acc));
+		time_2_us(duration(glob.start, now)) / 1000);
+	if (glob.pngs.o.size) {
+		min = fold_pongs(min_acc);
+		avg = fold_pongs(avg_acc);
+		max = fold_pongs(max_acc);
+		mdev = fold_pongs(mdev_acc);
+		printf("rtt min/avg/max/mdev = %lld.%03lld/%lld.%03lld/%lld.%03lld/%lld.%03lld ms\n",
+		       min / 1000, min % 1000, avg / 1000, avg % 1000,
+		       max / 1000, max % 1000, mdev / 1000, mdev % 1000);
+	}
 	free_pngs();
 	exit(0);
+}
+
+void		sig_quit(int signum) {
+	struct timeval		now;
+	long long			min, max, avg, ewma;
+
+	(void)signum;	
+	gettimeofday(&now, NULL);
+	if (glob.pngs.o.size) {
+		min = fold_pongs(min_acc);
+		avg = fold_pongs(avg_acc);
+		max = fold_pongs(max_acc);
+		ewma = 0;
+		printf("\r%ld/%ld packets, %ld%% loss, ",
+				glob.pngs.o.size, glob.pngs.i.size,
+				100 - (glob.pngs.o.size * 100 / glob.pngs.i.size));
+		printf("min/avg/ewma/max = %lld.%03lld/%lld.%03lld/%lld.%03lld/%lld.%03lld ms\n",
+				min / 1000, min % 1000, avg / 1000, avg % 1000, ewma / 1000, ewma % 1000,
+				max / 1000, max % 1000);
+	}
 }
 
 struct addrinfo		create_hints(void) {
@@ -95,6 +141,7 @@ void	pong(void) {
 	struct msghdr		msg = { 0 };
 	t_elem				*pong;
 	int					ret_val = 0;
+	long long			triptime;
 	struct iovec		io_vec =  {
 		.iov_base = &r_pkt,
 		.iov_len = sizeof(t_ip_pkt),
@@ -110,9 +157,18 @@ void	pong(void) {
 		return;
 	if (!(pong = ping_2_pong(endian_sw(r_pkt.icmp_pkt.seq))))
 		return;
-	printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.15g ms\n",
+	printf("%d bytes from %s: icmp_seq=%d ttl=%d ",
 			ret_val - IP_HDR_SZ, glob.targ.addr, endian_sw(r_pkt.icmp_pkt.seq),
-			r_pkt.ip_hdr[TTL_IDX], time_2_ms(pong->time));
+			r_pkt.ip_hdr[TTL_IDX]);
+	triptime = time_2_us(pong->time);
+	if (triptime >= 100000 - 50)
+		printf("time=%lld ms\n", (triptime + 500) / 1000);
+	else if (triptime >= 10000 - 5)
+		printf("time=%lld.%01lld ms\n", (triptime + 50) / 1000, ((triptime + 50) % 1000) / 100);
+	else if (triptime >= 1000)
+		printf("time=%lld.%02lld ms\n", (triptime + 5) / 1000, ((triptime + 5) % 1000) / 10);
+	else
+		printf("time=%lld.%03lld ms\n", triptime / 1000, triptime % 1000);
 	//print_body(r_pkt.icmp_pkt.body);
 }
 
@@ -176,7 +232,8 @@ int	main(int argc, char **argv) {
 	glob.pid = getpid();
 	gettimeofday(&glob.start, NULL);
 	signal(SIGALRM, ping);
-	signal(SIGINT, quit);
+	signal(SIGINT, sig_int);
+	signal(SIGQUIT, sig_quit);
 	ping(0);
 	alarm(PING_INT);
 	while (42)
