@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:52:47 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/17 13:43:04 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/17 14:10:41 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,10 +77,10 @@ void		sig_quit(int signum) {
 		avg = fold_pongs(avg_acc);
 		max = fold_pongs(max_acc);
 		ewma = fold_pongs(ewma_acc);;
-		printf("\r%ld/%ld packets, %ld%% loss, ",
+		fprintf(stderr, "\r%ld/%ld packets, %ld%% loss, ",
 				glob.pngs.o.size, glob.pngs.i.size,
 				100 - (glob.pngs.o.size * 100 / glob.pngs.i.size));
-		printf("min/avg/ewma/max = %lld.%03lld/%lld.%03lld/%lld.%03lld/%lld.%03lld ms\n",
+		fprintf(stderr, "min/avg/ewma/max = %lld.%03lld/%lld.%03lld/%lld.%03lld/%lld.%03lld ms\n",
 				min / 1000, min % 1000, avg / 1000, avg % 1000, ewma / 8000, (ewma / 8) % 1000,
 				max / 1000, max % 1000);
 	}

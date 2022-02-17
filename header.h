@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 18:05:08 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/17 13:32:02 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/17 14:09:29 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,6 +99,7 @@ void							mem_set(void *data, size_t size, uint8_t val);
 long long						time_2_us(struct timeval tv);
 struct timeval					duration(struct timeval start, struct timeval end);
 long							llsqrt(long long nb);
+void							error(int ret, char *fnc, char *msg);
 
 void							new_ping(uint16_t seq);
 t_elem							*ping_2_pong(uint16_t seq);
