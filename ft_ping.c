@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:52:47 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/16 16:19:52 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/17 13:43:04 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,6 @@
 //free pendlist and if exit or signal
 //check all possible errors and failing ways
 //verify pong integrety
-//check number format
 //test rtt when no packets are received
 //check division by 0 
 //handle
@@ -77,12 +76,12 @@ void		sig_quit(int signum) {
 		min = fold_pongs(min_acc);
 		avg = fold_pongs(avg_acc);
 		max = fold_pongs(max_acc);
-		ewma = 0;
+		ewma = fold_pongs(ewma_acc);;
 		printf("\r%ld/%ld packets, %ld%% loss, ",
 				glob.pngs.o.size, glob.pngs.i.size,
 				100 - (glob.pngs.o.size * 100 / glob.pngs.i.size));
 		printf("min/avg/ewma/max = %lld.%03lld/%lld.%03lld/%lld.%03lld/%lld.%03lld ms\n",
-				min / 1000, min % 1000, avg / 1000, avg % 1000, ewma / 1000, ewma % 1000,
+				min / 1000, min % 1000, avg / 1000, avg % 1000, ewma / 8000, (ewma / 8) % 1000,
 				max / 1000, max % 1000);
 	}
 }
@@ -153,10 +152,14 @@ void	pong(void) {
 		printf("Error: Can't receive ping\n");
 		return;
 	}
-	if (r_pkt.icmp_pkt.id != endian_sw(glob.pid))
+	if (r_pkt.icmp_pkt.type == ICMP_ECHO || r_pkt.icmp_pkt.id != endian_sw(glob.pid))
 		return;
-	if (!(pong = ping_2_pong(endian_sw(r_pkt.icmp_pkt.seq))))
+	//must treat corrupted response here
+	//a revoir
+	if (!(pong = ping_2_pong(endian_sw(r_pkt.icmp_pkt.seq)))) {
+		printf("Error: Unvalid response\n");
 		return;
+	}
 	printf("%d bytes from %s: icmp_seq=%d ttl=%d ",
 			ret_val - IP_HDR_SZ, glob.targ.addr, endian_sw(r_pkt.icmp_pkt.seq),
 			r_pkt.ip_hdr[TTL_IDX]);

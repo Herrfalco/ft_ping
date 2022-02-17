@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 18:05:08 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/16 16:03:13 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/17 13:32:02 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@
 #include <limits.h>
 
 #define ICMP_ECHO				8
+#define ICMP_ERESP				0
 
 #define HDR_SZ					8
 #define BODY_SZ					56 // Must be divisible by 4
@@ -107,6 +108,7 @@ long long						min_acc(t_elem *el);
 long long						max_acc(t_elem *el);
 long long						avg_acc(t_elem *el);
 long long						mdev_acc(t_elem *el);
+long long						ewma_acc(t_elem *el);
 long long						fold_pongs(long long (*acc)(t_elem *));
 
 #endif //HEADER_H

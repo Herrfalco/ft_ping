@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/16 11:49:44 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/16 15:59:11 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/17 11:38:42 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,16 @@ long long		mdev_acc(t_elem *el) {
 				* (glob.acc.val / glob.pngs.o.size));
 		}
 		return (llsqrt(glob.acc.val));
+	}
+	return (glob.acc.val);
+}
+
+long long		ewma_acc(t_elem *el) {
+	if (el) {
+		if (!glob.acc.val)
+			glob.acc.val = time_2_us(el->time) * 8;
+		else
+			glob.acc.val += time_2_us(el->time) - glob.acc.val / 8;
 	}
 	return (glob.acc.val);
 }
