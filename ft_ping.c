@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:52:47 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/17 14:10:41 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/22 11:02:28 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,10 @@
 //verify pong integrety
 //test rtt when no packets are received
 //check division by 0 
+//test rcv timeout
 //handle
+//test all error responses
+//set max readlen to avoid buffoverflow
 /*
 	if (dupflag && (!multicast || rts->opt_verbose))
 	    printf(_(" (DUP!)"));
@@ -102,20 +105,6 @@ void		fill_body(uint8_t *body, uint32_t pat) {
 		bod[i] = pat;
 }
 
-/*
-   void		print_body(uint8_t *body) {
-   uint32_t	*bod = (uint32_t *)body;
-
-   for (unsigned int i = 0; i < BODY_SZ / 4; ++i) {
-   printf("%02x %02x %02x %02x\n",
-   bod[i] >> 0x18,
-   (bod[i] >> 0x10)  & 0xff,
-   (bod[i] >> 0x8)  & 0xff,
-   bod[i] & 0xff);
-   }
-   }
- */
-
 void	ping(int signum) {
 	struct sockaddr			*targ = (struct sockaddr *)&glob.targ.in;
 	static unsigned int		seq = 0;
@@ -131,16 +120,61 @@ void	ping(int signum) {
 		printf("Error: Can't send ping\n");
 		return;
 	}
-	new_ping(seq);
+	new_ping(pkt);
 	alarm(PING_INT);
+}
+
+void	check_resp(int ret_val, int error, t_ip_pkt *r_pkt, t_elem *pong) {
+	long long			triptime;
+	uint16_t			sum;
+	size_t				cmp_idx = IN_ADDR_SZ;
+
+	printf("%d bytes from %s: icmp_seq=%d ttl=%d ",
+			ret_val - IP_HDR_SZ, glob.targ.addr, endian_sw(r_pkt->icmp_pkt.seq),
+			r_pkt->ip_hdr[TTL_IDX]);
+	triptime = time_2_us(pong->time);
+	if (triptime >= 100000 - 50)
+		printf("time=%lld ms", (triptime + 500) / 1000);
+	else if (triptime >= 10000 - 5)
+		printf("time=%lld.%01lld ms", (triptime + 50) / 1000, ((triptime + 50) % 1000) / 100);
+	else if (triptime >= 1000)
+		printf("time=%lld.%02lld ms", (triptime + 5) / 1000, ((triptime + 5) % 1000) / 10);
+	else
+		printf("time=%lld.%03lld ms", triptime / 1000, triptime % 1000);
+	if (error == 2)
+		printf(" (DUP!)");
+	sum = r_pkt->icmp_pkt.sum;
+	r_pkt->icmp_pkt.sum = 0;
+	if (sum != checksum(&r_pkt->icmp_pkt, sizeof(t_icmp_pkt)))
+		printf(" (BAD CHECKSUM!)");
+	if (mem_cmp((void *)&glob.targ.in.sin_addr, (void *)&r_pkt->ip_src, &cmp_idx))
+		printf(" (DIFFERENT ADDRESS!)");
+	printf("\n");
+/*
+823         cp = ((unsigned char *)ptr) + sizeof(struct timeval);
+824         dp = &rts->outpack[8 + sizeof(struct timeval)];
+825         for (i = sizeof(struct timeval); i < rts->datalen; ++i, ++cp, ++dp) {
+826             if (*cp != *dp) {
+827                 printf(_("\nwrong data byte #%zu should be 0x%x but was 0x%x"),
+828                        i, *dp, *cp);
+829                 cp = (unsigned char *)ptr + sizeof(struct timeval);
+830                 for (i = sizeof(struct timeval); i < rts->datalen; ++i, ++cp) {
+831                     if ((i % 32) == sizeof(struct timeval))
+832                         printf("\n#%zu\t", i);
+833                     printf("%x ", *cp);
+834                 }
+835                 break;
+836             }
+837         }
+*/
 }
 
 void	pong(void) {
 	t_ip_pkt			r_pkt = { 0 };
 	struct msghdr		msg = { 0 };
-	t_elem				*pong;
+	t_elem				*pong = NULL;
 	int					ret_val = 0;
-	long long			triptime;
+	int					error;
 	struct iovec		io_vec =  {
 		.iov_base = &r_pkt,
 		.iov_len = sizeof(t_ip_pkt),
@@ -152,27 +186,15 @@ void	pong(void) {
 		printf("Error: Can't receive ping\n");
 		return;
 	}
-	if (r_pkt.icmp_pkt.type == ICMP_ECHO || r_pkt.icmp_pkt.id != endian_sw(glob.pid))
+	if (r_pkt.icmp_pkt.id != endian_sw(glob.pid))
 		return;
-	//must treat corrupted response here
-	//a revoir
-	if (!(pong = ping_2_pong(endian_sw(r_pkt.icmp_pkt.seq)))) {
-		printf("Error: Unvalid response\n");
+	if (r_pkt.icmp_pkt.type != ICMP_ECHOREPLY) {
+		++glob.errors.err;
 		return;
 	}
-	printf("%d bytes from %s: icmp_seq=%d ttl=%d ",
-			ret_val - IP_HDR_SZ, glob.targ.addr, endian_sw(r_pkt.icmp_pkt.seq),
-			r_pkt.ip_hdr[TTL_IDX]);
-	triptime = time_2_us(pong->time);
-	if (triptime >= 100000 - 50)
-		printf("time=%lld ms\n", (triptime + 500) / 1000);
-	else if (triptime >= 10000 - 5)
-		printf("time=%lld.%01lld ms\n", (triptime + 50) / 1000, ((triptime + 50) % 1000) / 100);
-	else if (triptime >= 1000)
-		printf("time=%lld.%02lld ms\n", (triptime + 5) / 1000, ((triptime + 5) % 1000) / 10);
-	else
-		printf("time=%lld.%03lld ms\n", triptime / 1000, triptime % 1000);
-	//print_body(r_pkt.icmp_pkt.body);
+	if ((error = ping_2_pong(r_pkt.icmp_pkt.seq, &pong)) == 1)
+		return;
+	check_resp(ret_val, error, &r_pkt, pong);
 }
 
 int		find_targ(char *arg) {
@@ -200,13 +222,18 @@ int		find_targ(char *arg) {
 }
 
 int		create_sock(void) {
-	uint8_t				ttl = TTL;
+	uint8_t		ttl = TTL;
+	uint32_t	filt = 1 << ICMP_ECHO;
 
 	if ((glob.sock = socket(PF_INET, SOCK_RAW, IPPROTO_ICMP)) < 0) {
 		printf("Error: Can't create socket\n");
 		return (1);
 	}
 	if (setsockopt(glob.sock, IPPROTO_IP, IP_TTL, &ttl, sizeof(uint8_t))) {
+		printf("Error: Can't configure socket\n");
+		return (2);
+	}
+	if (setsockopt(glob.sock, SOL_RAW, ICMP_FILTER, &filt, sizeof(uint32_t))) {
 		printf("Error: Can't configure socket\n");
 		return (2);
 	}

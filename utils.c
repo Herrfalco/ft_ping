@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 18:43:33 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/17 14:08:53 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/21 19:59:51 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,4 +72,12 @@ void			error(int ret, char *fnc, char *msg) {
 	fprintf(stderr, "%s\n", msg);
 	if (ret)
 		exit(ret);
+}
+
+t_bool			mem_cmp(void *m1, void *m2, size_t *size) {
+	while ((*size)-- > 0) {
+		if (((char *)m1)[*size] != ((char *)m2)[*size])
+			return (TRUE);
+	}
+	return (FALSE);
 }

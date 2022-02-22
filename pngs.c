@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 18:04:00 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/16 11:50:07 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/21 22:47:41 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ static void		push_elem(t_elem_lst *lst, t_elem *el) {
 	++lst->size;
 }
 
-void		new_ping(uint16_t seq) {
+void		new_ping(t_icmp_pkt pkt) {
 	t_elem		*new = malloc(sizeof(t_elem));
 
 	if (!new) {
@@ -26,27 +26,28 @@ void		new_ping(uint16_t seq) {
 		exit(6);
 	}
 	gettimeofday(&new->time, NULL);
-	new->seq = seq;
+	new->pkt = pkt;
 	push_elem(&glob.pngs.i, new);
 }
 
-t_elem		*ping_2_pong(uint16_t seq) {
+int			ping_2_pong(uint16_t seq, t_elem **pong) {
 	t_elem			*prev = NULL;
-	t_elem			*elem;
 	struct timeval	now;
 
-	for (elem = glob.pngs.i.head; elem && elem->seq != seq; elem = elem->next)
-		prev = elem;	
-	if (!elem)
-		return (NULL);
+	for (*pong = glob.pngs.i.head; *pong && (*pong)->pkt.seq != seq; *pong = (*pong)->next)
+		prev = *pong;
+	if (!*pong) {
+		for	(*pong = glob.pngs.o.head; *pong && (*pong)->pkt.seq != seq; *pong = (*pong)->next);
+		return (!!*pong + 1);
+	}
 	if (prev)
-		prev->next = elem->next;
+		prev->next = (*pong)->next;
 	else
-		glob.pngs.i.head = elem->next;
+		glob.pngs.i.head = (*pong)->next;
 	gettimeofday(&now, NULL);
-	elem->time = duration(elem->time, now);
-	push_elem(&glob.pngs.o, elem);
-	return (elem);
+	(*pong)->time = duration((*pong)->time, now);
+	push_elem(&glob.pngs.o, *pong);
+	return (0);
 }
 
 static void		rec_free_lst(t_elem *elem) {

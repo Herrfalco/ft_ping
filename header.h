@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 18:05:08 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/17 14:09:29 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/22 11:00:04 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,13 +24,15 @@
 #include <signal.h>
 #include <limits.h>
 
-#define ICMP_ECHO				8
-#define ICMP_ERESP				0
+#define	ICMP_ECHO				8			
+#define	ICMP_ECHOREPLY			0
+#define	ICMP_FILTER				1
 
 #define HDR_SZ					8
-#define BODY_SZ					56 // Must be divisible by 4
+#define BODY_SZ					56 
 #define IP_HDR_SZ				20
 #define TTL_IDX					8
+#define IN_ADDR_SZ				4
 
 #define TTL						64
 #define PING_INT				1
@@ -56,13 +58,15 @@ typedef struct					s_icmp_pkt {
 } __attribute__((packed))		t_icmp_pkt;
 
 typedef struct					s_ip_pkt {
-	uint8_t						ip_hdr[IP_HDR_SZ];
+	uint8_t						ip_hdr[IP_HDR_SZ - 2 * IN_ADDR_SZ];
+	uint32_t					ip_src;
+	uint32_t					ip_dst;
 	t_icmp_pkt					icmp_pkt;
 } __attribute__((packed))		t_ip_pkt;
 
 typedef struct					s_elem {
 	struct timeval				time;
-	uint16_t					seq;
+	t_icmp_pkt					pkt;
 	struct s_elem				*next;
 }								t_elem;
 
@@ -82,13 +86,21 @@ typedef struct					s_acc {
 	t_bool						flag;
 }								t_acc;
 
+typedef struct					s_errors {
+	size_t						sum;
+	size_t						dup;
+	size_t						err;
+}								t_errors;
+
 typedef struct					s_glob {
 	t_targ						targ;
 	int							sock;
+	t_icmp_pkt					pkt;
 	int							pid;
 	struct timeval				start;
 	t_pngs						pngs;
 	t_acc						acc;
+	t_errors					errors;
 }								t_glob;
 
 extern t_glob					glob;
@@ -100,9 +112,10 @@ long long						time_2_us(struct timeval tv);
 struct timeval					duration(struct timeval start, struct timeval end);
 long							llsqrt(long long nb);
 void							error(int ret, char *fnc, char *msg);
+t_bool							mem_cmp(void *m1, void *m2, size_t *size);
 
-void							new_ping(uint16_t seq);
-t_elem							*ping_2_pong(uint16_t seq);
+void							new_ping(t_icmp_pkt pkt);
+int								ping_2_pong(uint16_t seq, t_elem **pong);
 void							free_pngs(void);
 
 long long						min_acc(t_elem *el);
