@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:52:47 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/22 15:00:11 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/22 16:20:42 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,14 +24,6 @@
 //handle
 //test all error responses
 //set max readlen to avoid buffoverflow
-/*
-	if (rts->nrepeats)
-		printf(_(", +%ld duplicates"), rts->nrepeats);
-	if (rts->nchecksum)
-		printf(_(", +%ld corrupted"), rts->nchecksum);
-	if (rts->nerrors)
-		printf(_(", +%ld errors"), rts->nerrors);
-*/
 //handle backward time
 
 #include "header.h"
@@ -45,8 +37,14 @@ void		sig_int(int signum) {
 	(void)signum;	
 	gettimeofday(&now, NULL);
 	printf("\n--- %s ping statistics ---\n", glob.targ.name ? glob.targ.name : glob.targ.addr);
-	printf("%ld packets transmitted, %ld received, %g%% packet loss, time %lldms\n",
-		glob.pngs.i.size, glob.pngs.o.size, 100. - (glob.pngs.o.size * 100. / glob.pngs.i.size),
+	printf("%ld packets transmitted, %ld received", glob.pngs.i.size, glob.pngs.o.size);
+	if (glob.errors.dup)
+		printf(", +%ld duplicates", glob.errors.dup);
+	if (glob.errors.sum)
+		printf(", +%ld corrupted", glob.errors.sum);
+	if (glob.errors.err)
+		printf(", +%ld errors", glob.errors.err);
+	printf(", %g%% packet loss, time %lldms\n", 100. - (glob.pngs.o.size * 100. / glob.pngs.i.size),
 		time_2_us(duration(glob.start, now)) / 1000);
 	if (glob.pngs.o.size) {
 		min = fold_pongs(min_acc);
@@ -130,12 +128,16 @@ void	check_resp(int ret_val, int error, t_ip_pkt *r_pkt, t_elem *pong) {
 		printf("time=%lld.%02lld ms", (triptime + 5) / 1000, ((triptime + 5) % 1000) / 10);
 	else
 		printf("time=%lld.%03lld ms", triptime / 1000, triptime % 1000);
-	if (error == 2)
+	if (error == 2) {
+		++glob.errors.dup;
 		printf(" (DUP!)");
+	}
 	sum = r_pkt->icmp_pkt.sum;
 	r_pkt->icmp_pkt.sum = 0;
-	if (sum != checksum(&r_pkt->icmp_pkt, sizeof(t_icmp_pkt)))
+	if (sum != checksum(&r_pkt->icmp_pkt, sizeof(t_icmp_pkt))) {
+		++glob.errors.sum;
 		printf(" (BAD CHECKSUM!)");
+	}
 	if (mem_cmp((void *)&glob.targ.in.sin_addr, (void *)&r_pkt->ip_src, &cmp_idx))
 		printf(" (DIFFERENT ADDRESS!)");
 	cmp_idx = BODY_SZ;
