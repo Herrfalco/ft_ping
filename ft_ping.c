@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:52:47 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/22 11:02:28 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/22 15:00:11 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,14 +24,6 @@
 //handle
 //test all error responses
 //set max readlen to avoid buffoverflow
-/*
-	if (dupflag && (!multicast || rts->opt_verbose))
-	    printf(_(" (DUP!)"));
-	if (csfailed)
-	    printf(_(" (BAD CHECKSUM!)"));
-	if (wrong_source)
-	    printf(_(" (DIFFERENT ADDRESS!)"));
-*/
 /*
 	if (rts->nrepeats)
 		printf(_(", +%ld duplicates"), rts->nrepeats);
@@ -108,13 +100,10 @@ void		fill_body(uint8_t *body, uint32_t pat) {
 void	ping(int signum) {
 	struct sockaddr			*targ = (struct sockaddr *)&glob.targ.in;
 	static unsigned int		seq = 0;
-	t_icmp_pkt				pkt = { 0 };
+	t_icmp_pkt				pkt = glob.pkt;
 
 	(void)signum;
-	pkt.type = ICMP_ECHO;
-	pkt.id = endian_sw(glob.pid);
 	pkt.seq = endian_sw(++seq);
-	fill_body(pkt.body, 0xaabbccdd);
 	pkt.sum = checksum(&pkt, sizeof(t_icmp_pkt));
 	if (sendto(glob.sock, &pkt, sizeof(t_icmp_pkt), 0, targ, sizeof(struct sockaddr)) < 0 ) {
 		printf("Error: Can't send ping\n");
@@ -149,24 +138,17 @@ void	check_resp(int ret_val, int error, t_ip_pkt *r_pkt, t_elem *pong) {
 		printf(" (BAD CHECKSUM!)");
 	if (mem_cmp((void *)&glob.targ.in.sin_addr, (void *)&r_pkt->ip_src, &cmp_idx))
 		printf(" (DIFFERENT ADDRESS!)");
+	cmp_idx = BODY_SZ;
+	if (mem_cmp((void *)glob.pkt.body, (void *)r_pkt->icmp_pkt.body, &cmp_idx)) {
+		printf("\nwrong data byte #%lu should be 0x%x but was 0x%x",
+			cmp_idx, glob.pkt.body[cmp_idx], r_pkt->icmp_pkt.body[cmp_idx]);
+		for (size_t i = 0; i < BODY_SZ; ++i) {
+			if (!(i % 32))
+				printf("\n#%lu\t", i);
+			printf("%x ", r_pkt->icmp_pkt.body[i]);
+		}
+	}
 	printf("\n");
-/*
-823         cp = ((unsigned char *)ptr) + sizeof(struct timeval);
-824         dp = &rts->outpack[8 + sizeof(struct timeval)];
-825         for (i = sizeof(struct timeval); i < rts->datalen; ++i, ++cp, ++dp) {
-826             if (*cp != *dp) {
-827                 printf(_("\nwrong data byte #%zu should be 0x%x but was 0x%x"),
-828                        i, *dp, *cp);
-829                 cp = (unsigned char *)ptr + sizeof(struct timeval);
-830                 for (i = sizeof(struct timeval); i < rts->datalen; ++i, ++cp) {
-831                     if ((i % 32) == sizeof(struct timeval))
-832                         printf("\n#%zu\t", i);
-833                     printf("%x ", *cp);
-834                 }
-835                 break;
-836             }
-837         }
-*/
 }
 
 void	pong(void) {
@@ -264,6 +246,9 @@ int	main(int argc, char **argv) {
 	signal(SIGALRM, ping);
 	signal(SIGINT, sig_int);
 	signal(SIGQUIT, sig_quit);
+	glob.pkt.type = ICMP_ECHO;
+	glob.pkt.id = endian_sw(glob.pid);
+	fill_body(glob.pkt.body, 0xaabbccdd);
 	ping(0);
 	alarm(PING_INT);
 	while (42)
