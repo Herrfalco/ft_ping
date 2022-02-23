@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/16 11:49:44 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/17 11:38:42 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/23 19:47:45 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,8 +29,9 @@ long long		max_acc(t_elem *el) {
 }
 
 long long		avg_acc(t_elem *el) {
-	if (!el)
-		return (glob.acc.val / glob.pngs.o.size);
+	if (!el) {
+		return (glob.pngs.o.size ? glob.acc.val / glob.pngs.o.size : 0);
+	}
 	glob.acc.val += time_2_us(el->time);
 	return (glob.acc.val);
 }
@@ -39,6 +40,8 @@ long long		mdev_acc(t_elem *el) {
 	if (el) {
 		glob.acc.val += time_2_us(el->time);
 		glob.acc.tmp += time_2_us(el->time) * time_2_us(el->time);
+	} else if (!glob.pngs.o.size) {
+		return (0);
 	} else {
 		if (glob.acc.val < INT_MAX)
 			glob.acc.val = (glob.acc.tmp - ((glob.acc.val * glob.acc.val) / glob.pngs.o.size))

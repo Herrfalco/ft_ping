@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 18:04:00 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/21 22:47:41 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/23 19:16:05 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,16 +21,14 @@ static void		push_elem(t_elem_lst *lst, t_elem *el) {
 void		new_ping(t_icmp_pkt pkt) {
 	t_elem		*new = malloc(sizeof(t_elem));
 
-	if (!new) {
-		printf("Error: Can't allocate enough ressources\n");
-		exit(6);
-	}
+	if (!new)
+		error(E_ALLOC, "Memory", "Can't allocate enough ressources");
 	gettimeofday(&new->time, NULL);
 	new->pkt = pkt;
 	push_elem(&glob.pngs.i, new);
 }
 
-int			ping_2_pong(uint16_t seq, t_elem **pong) {
+t_bool		ping_2_pong(uint16_t seq, t_elem **pong) {
 	t_elem			*prev = NULL;
 	struct timeval	now;
 
@@ -38,7 +36,9 @@ int			ping_2_pong(uint16_t seq, t_elem **pong) {
 		prev = *pong;
 	if (!*pong) {
 		for	(*pong = glob.pngs.o.head; *pong && (*pong)->pkt.seq != seq; *pong = (*pong)->next);
-		return (!!*pong + 1);
+		if (!*pong)
+			error(E_PNG_NFND, "Pong", "Can't match reponse with any request");
+		return (TRUE);
 	}
 	if (prev)
 		prev->next = (*pong)->next;
@@ -47,7 +47,7 @@ int			ping_2_pong(uint16_t seq, t_elem **pong) {
 	gettimeofday(&now, NULL);
 	(*pong)->time = duration((*pong)->time, now);
 	push_elem(&glob.pngs.o, *pong);
-	return (0);
+	return (FALSE);
 }
 
 static void		rec_free_lst(t_elem *elem) {

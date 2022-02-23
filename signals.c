@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/22 16:25:56 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/22 16:33:25 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/23 19:35:37 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,16 +26,17 @@ void		sig_int(int signum) {
 		printf(", +%ld corrupted", glob.errors.sum);
 	if (glob.errors.err)
 		printf(", +%ld errors", glob.errors.err);
-	printf(", %g%% packet loss, time %lldms\n", 100. - (glob.pngs.o.size * 100. / glob.pngs.i.size),
-		time_2_us(duration(glob.start, now)) / 1000);
+	printf(", %g%% packet loss, time %lldms\n", glob.pngs.i.size ?
+			100. - (glob.pngs.o.size * 100. / glob.pngs.i.size) : 0,
+			time_2_us(duration(glob.start, now)) / 1000);
 	if (glob.pngs.o.size) {
 		min = fold_pongs(min_acc);
 		avg = fold_pongs(avg_acc);
 		max = fold_pongs(max_acc);
 		mdev = fold_pongs(mdev_acc);
 		printf("rtt min/avg/max/mdev = %lld.%03lld/%lld.%03lld/%lld.%03lld/%lld.%03lld ms\n",
-		       min / 1000, min % 1000, avg / 1000, avg % 1000,
-		       max / 1000, max % 1000, mdev / 1000, mdev % 1000);
+				min / 1000, min % 1000, avg / 1000, avg % 1000,
+				max / 1000, max % 1000, mdev / 1000, mdev % 1000);
 	}
 	free_pngs();
 	exit(0);
@@ -47,16 +48,14 @@ void		sig_quit(int signum) {
 
 	(void)signum;	
 	gettimeofday(&now, NULL);
-	if (glob.pngs.o.size) {
-		min = fold_pongs(min_acc);
-		avg = fold_pongs(avg_acc);
-		max = fold_pongs(max_acc);
-		ewma = fold_pongs(ewma_acc);;
-		fprintf(stderr, "\r%ld/%ld packets, %ld%% loss, ",
-				glob.pngs.o.size, glob.pngs.i.size,
-				100 - (glob.pngs.o.size * 100 / glob.pngs.i.size));
-		fprintf(stderr, "min/avg/ewma/max = %lld.%03lld/%lld.%03lld/%lld.%03lld/%lld.%03lld ms\n",
-				min / 1000, min % 1000, avg / 1000, avg % 1000, ewma / 8000, (ewma / 8) % 1000,
-				max / 1000, max % 1000);
-	}
+	min = fold_pongs(min_acc);
+	avg = fold_pongs(avg_acc);
+	max = fold_pongs(max_acc);
+	ewma = fold_pongs(ewma_acc);;
+	fprintf(stderr, "\r%ld/%ld packets, %ld%% loss, ",
+			glob.pngs.o.size, glob.pngs.i.size, glob.pngs.i.size ?
+			100 - (glob.pngs.o.size * 100 / glob.pngs.i.size) : 0);
+	fprintf(stderr, "min/avg/ewma/max = %lld.%03lld/%lld.%03lld/%lld.%03lld/%lld.%03lld ms\n",
+			min / 1000, min % 1000, avg / 1000, avg % 1000, ewma / 8000, (ewma / 8) % 1000,
+			max / 1000, max % 1000);
 }

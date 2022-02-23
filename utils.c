@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 18:43:33 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/23 11:54:35 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/23 19:14:57 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,8 +70,10 @@ void			error(t_err ret, char *fnc, char *msg) {
 	if (fnc)
 		fprintf(stderr, "%s: ", fnc);	
 	fprintf(stderr, "%s\n", msg);
-	if (ret)
+	if (ret) {
+		free_pngs();	
 		exit(ret);
+	}
 }
 
 t_bool			mem_cmp(void *m1, void *m2, size_t *size) {

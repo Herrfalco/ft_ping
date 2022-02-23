@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/22 16:27:53 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/23 12:28:43 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/23 19:01:29 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,12 +32,16 @@ typedef enum					e_bool {
 }								t_bool;
 
 typedef enum					e_err {
-	E_NO,
+	E_NO_FAT,
 	E_ARG_NB,
 	E_PERM,
 	E_TARG,
 	E_SCK_CRE,
 	E_SCK_OPT,
+	E_SND,
+	E_REC,
+	E_PNG_NFND,
+	E_ALLOC,
 }								t_err;
 
 #endif //CONST_H

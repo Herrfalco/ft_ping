@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/22 16:30:37 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/23 12:29:25 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/23 15:26:43 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ void							error(t_err ret, char *fnc, char *msg);
 t_bool							mem_cmp(void *m1, void *m2, size_t *size);
 
 void							new_ping(t_icmp_pkt pkt);
-int								ping_2_pong(uint16_t seq, t_elem **pong);
+t_bool								ping_2_pong(uint16_t seq, t_elem **pong);
 void							free_pngs(void);
 
 long long						min_acc(t_elem *el);
