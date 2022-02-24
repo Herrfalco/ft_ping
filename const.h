@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/22 16:27:53 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/24 12:18:52 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/24 14:58:09 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@
 #define IP_HDR_SZ				20
 #define TTL_IDX					8
 #define IN_ADDR_SZ				4
+#define MAX_SEQ_SZ				16
 
 #define TTL						64
 #define PING_INT				1
@@ -48,7 +49,7 @@ typedef enum					e_bool {
 }								t_bool;
 
 typedef enum					e_err {
-	E_NO_FAT,
+	E_NO,
 	E_ARG_NB,
 	E_PERM,
 	E_TARG,
@@ -56,9 +57,11 @@ typedef enum					e_err {
 	E_SCK_OPT,
 	E_SND,
 	E_REC,
-	E_PNG_NFND,
 	E_ALLOC,
 	E_ARG,
+	E_DUP,
+	E_NO_MATCH,
+	E_BCK_TIME,
 }								t_err;
 
 #endif //CONST_H

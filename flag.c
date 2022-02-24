@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/23 19:58:36 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/24 12:37:51 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/24 13:48:45 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,6 @@ t_bool		is_set(t_flag flg) {
 }
 
 void		disp_help(void) {
-	printf("%s", HELP_TXT);
+	fprintf(stderr, "%s", HELP_TXT);
 	exit(0);
 }

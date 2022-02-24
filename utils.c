@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 18:43:33 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/24 12:36:36 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/24 15:01:08 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,8 +42,12 @@ struct timeval	duration(struct timeval start, struct timeval end) {
 	struct timeval		result = { 0 };	
 	long				tmp;
 
+	if (start.tv_sec > end.tv_sec)
+		error(E_BCK_TIME, "Time", "Ping received before being sended", NULL);
 	result.tv_sec = end.tv_sec - start.tv_sec;
 	if ((tmp = end.tv_usec - start.tv_usec) < 0) {
+		if (result.tv_sec < 1)
+			error(E_BCK_TIME, "Time", "Ping received before being sended", NULL);
 		--result.tv_sec;
 		result.tv_usec = 1000000 + tmp;
 	} else {

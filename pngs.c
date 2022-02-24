@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 18:04:00 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/24 12:41:47 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/24 14:14:28 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,17 +28,25 @@ void		new_ping(t_icmp_pkt pkt) {
 	push_elem(&glob.pngs.i, new);
 }
 
-t_bool		ping_2_pong(uint16_t seq, t_elem **pong) {
+t_err		ping_2_pong(uint16_t seq, t_elem **pong) {
 	t_elem			*prev = NULL;
+	char			buff[MAX_SEQ_SZ];
 	struct timeval	now;
 
+	seq = 999;
 	for (*pong = glob.pngs.i.head; *pong && (*pong)->pkt.seq != seq; *pong = (*pong)->next)
 		prev = *pong;
 	if (!*pong) {
 		for	(*pong = glob.pngs.o.head; *pong && (*pong)->pkt.seq != seq; *pong = (*pong)->next);
-		if (!*pong)
-			error(E_PNG_NFND, "Pong", "Can't match reponse with any request", NULL);
-		return (TRUE);
+		if (!*pong) {
+			++glob.errors.err;
+			if (is_set(VERBOSE)) {
+				sprintf(buff, "%d", seq);
+				error(E_NO, "Pong", "Sequence not requested", buff);
+			}
+			return (E_NO_MATCH);
+		}
+		return (E_DUP);
 	}
 	if (prev)
 		prev->next = (*pong)->next;
@@ -47,7 +55,7 @@ t_bool		ping_2_pong(uint16_t seq, t_elem **pong) {
 	gettimeofday(&now, NULL);
 	(*pong)->time = duration((*pong)->time, now);
 	push_elem(&glob.pngs.o, *pong);
-	return (FALSE);
+	return (E_NO);
 }
 
 static void		rec_free_lst(t_elem *elem) {

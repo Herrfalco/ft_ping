@@ -6,18 +6,17 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:52:47 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/24 12:48:20 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/24 15:02:07 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 //think about deleting unused var and includes
-//test rtt when no packets are received
 //test all error responses
-//set max readlen to avoid buffoverflow
-//handle backward time
 //put static on private functions
-//options
-//add variable field in error display
+//verbose output :
+//			error(0, 0, _("packet too short (%d bytes) from %s"), cc,
+//				pr_addr(rts,from, sizeof *from));
+
 
 #include "header.h"
 

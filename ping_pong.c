@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/23 19:54:21 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/24 12:40:05 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/24 14:03:15 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,7 +77,7 @@ void		pong(void) {
 	struct msghdr		msg = { 0 };
 	t_elem				*pong = NULL;
 	int					ret_val = 0;
-	t_bool				dup;
+	t_bool				dup = FALSE;
 	struct iovec		io_vec =  {
 		.iov_base = &r_pkt,
 		.iov_len = sizeof(t_ip_pkt),
@@ -93,6 +93,13 @@ void		pong(void) {
 		++glob.errors.err;
 		return;
 	}
-	dup = ping_2_pong(r_pkt.icmp_pkt.seq, &pong);
+	switch (ping_2_pong(r_pkt.icmp_pkt.seq, &pong)) {
+		case E_NO_MATCH:
+			return;
+		case E_DUP:
+			dup = TRUE;
+		default:
+			;
+	}
 	check_resp(ret_val, dup, &r_pkt, pong);
 }
