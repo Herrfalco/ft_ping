@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/22 16:28:51 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/23 12:38:08 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/24 11:10:28 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,6 +71,7 @@ typedef struct					s_glob {
 	t_pngs						pngs;
 	t_acc						acc;
 	t_errors					errors;
+	size_t						flags;
 }								t_glob;
 
 #endif //STRUCT_H

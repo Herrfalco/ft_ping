@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 18:04:00 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/23 19:16:05 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/24 12:41:47 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ void		new_ping(t_icmp_pkt pkt) {
 	t_elem		*new = malloc(sizeof(t_elem));
 
 	if (!new)
-		error(E_ALLOC, "Memory", "Can't allocate enough ressources");
+		error(E_ALLOC, "Memory", "Can't allocate enough ressources", NULL);
 	gettimeofday(&new->time, NULL);
 	new->pkt = pkt;
 	push_elem(&glob.pngs.i, new);
@@ -37,7 +37,7 @@ t_bool		ping_2_pong(uint16_t seq, t_elem **pong) {
 	if (!*pong) {
 		for	(*pong = glob.pngs.o.head; *pong && (*pong)->pkt.seq != seq; *pong = (*pong)->next);
 		if (!*pong)
-			error(E_PNG_NFND, "Pong", "Can't match reponse with any request");
+			error(E_PNG_NFND, "Pong", "Can't match reponse with any request", NULL);
 		return (TRUE);
 	}
 	if (prev)

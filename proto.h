@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/22 16:30:37 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/23 15:26:43 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/24 12:36:54 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,8 +19,9 @@ void							mem_set(void *data, size_t size, uint8_t val);
 long long						time_2_us(struct timeval tv);
 struct timeval					duration(struct timeval start, struct timeval end);
 long							llsqrt(long long nb);
-void							error(t_err ret, char *fnc, char *msg);
+void							error(t_err ret, char *fnc, char *msg, char *quote);
 t_bool							mem_cmp(void *m1, void *m2, size_t *size);
+size_t							str_len(char *str);
 
 void							new_ping(t_icmp_pkt pkt);
 t_bool								ping_2_pong(uint16_t seq, t_elem **pong);
@@ -35,5 +36,12 @@ long long						fold_pongs(long long (*acc)(t_elem *));
 
 void							sig_int(int signum);
 void							sig_quit(int signum);
+
+void							ping(int signum);
+void							pong(void);
+
+void							add_flag(char *arg, t_bool err);
+t_bool							is_set(t_flag flg);
+void							disp_help(void);
 
 #endif //PROTO_H

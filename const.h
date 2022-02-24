@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/22 16:27:53 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/23 19:01:29 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/24 12:18:52 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,22 @@
 #define TTL						64
 #define PING_INT				1
 
+#define FLGS					"vh"
+#define FLG_SZ					2
+
+#define HELP_TXT				"Usage:\n" \
+								"  ft_ping [options] <destination>\n" \
+								"\n" \
+								"Options:\n" \
+								"  <destination>      dns name or ip address\n" \
+								"  -h                 display help\n" \
+								"  -v                 verbose output\n"
+
+typedef enum					e_flag {
+	VERBOSE,
+	HELP,
+}								t_flag;
+
 typedef enum					e_bool {
 	FALSE,
 	TRUE,
@@ -42,6 +58,7 @@ typedef enum					e_err {
 	E_REC,
 	E_PNG_NFND,
 	E_ALLOC,
+	E_ARG,
 }								t_err;
 
 #endif //CONST_H
