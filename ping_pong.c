@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/23 19:54:21 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/24 14:03:15 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/25 20:31:49 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,9 +56,13 @@ void		disp_err(t_bool dup, t_ip_pkt *r_pkt) {
 }
 
 void		check_resp(int ret_val, t_bool dup, t_ip_pkt *r_pkt, t_elem *pong) {
+	char				addr[INET_ADDRSTRLEN] = { 0 };
 	long long			triptime;
 
-	printf("%d bytes from %s: icmp_seq=%d ttl=%d ", ret_val - IP_HDR_SZ, glob.targ.addr,
+	if (flag_set(F_A))
+		printf("\a");
+	inet_ntop(AF_INET, &r_pkt->ip_src, addr, INET_ADDRSTRLEN);
+	printf("%d bytes from %s: icmp_seq=%d ttl=%d ", ret_val - IP_HDR_SZ, addr,
 		endian_sw(r_pkt->icmp_pkt.seq), r_pkt->ip_hdr[TTL_IDX]);
 	triptime = time_2_us(pong->time);
 	if (triptime >= 100000 - 50)
@@ -87,19 +91,19 @@ void		pong(void) {
 	msg.msg_iovlen = 1;
 	if ((ret_val = recvmsg(glob.sock, &msg, 0)) < 0)
 		error(E_REC, "Ping", "Can't receive packet", NULL);
-	if (r_pkt.icmp_pkt.id != glob.pkt.id)
-		return;
 	if (r_pkt.icmp_pkt.type != ICMP_ECHOREPLY) {
-		++glob.errors.err;
+		treat_error(&r_pkt);
 		return;
 	}
+	if (r_pkt.icmp_pkt.id != glob.pkt.id)
+		return;
 	switch (ping_2_pong(r_pkt.icmp_pkt.seq, &pong)) {
 		case E_NO_MATCH:
 			return;
 		case E_DUP:
 			dup = TRUE;
 		default:
-			;
+			break;
 	}
 	check_resp(ret_val, dup, &r_pkt, pong);
 }

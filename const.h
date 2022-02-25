@@ -6,15 +6,13 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/22 16:27:53 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/24 14:58:09 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/25 20:33:58 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CONST_H
 #define CONST_H
 
-#define	ICMP_ECHO				8			
-#define	ICMP_ECHOREPLY			0
 #define	ICMP_FILTER				1
 
 #define HDR_SZ					8
@@ -27,21 +25,30 @@
 #define TTL						64
 #define PING_INT				1
 
-#define FLGS					"vh"
-#define FLG_SZ					2
+#define FLGS					"avh"
+#define OPT_SZ					2
+#define OPTS					"t"
+#define OPTS_NB					1
 
 #define HELP_TXT				"Usage:\n" \
 								"  ft_ping [options] <destination>\n" \
 								"\n" \
 								"Options:\n" \
 								"  <destination>      dns name or ip address\n" \
+								"  -a				  use audible ping\n" \
 								"  -h                 display help\n" \
-								"  -v                 verbose output\n"
+								"  -v                 verbose output\n" \
+								"  -t <ttl>           define time to live\n"
 
 typedef enum					e_flag {
-	VERBOSE,
-	HELP,
+	F_A,
+	F_V,
+	F_H,
 }								t_flag;
+
+typedef enum					e_opt {
+	O_T,
+}								t_opt;
 
 typedef enum					e_bool {
 	FALSE,

@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/22 16:28:51 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/24 11:10:28 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/24 19:29:58 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,6 +63,12 @@ typedef struct					s_errors {
 	size_t						err;
 }								t_errors;
 
+typedef struct					s_args {
+	size_t						flags;
+	size_t						opts_flags;
+	unsigned int				opts[OPTS_NB];		
+}								t_args;
+
 typedef struct					s_glob {
 	t_targ						targ;
 	int							sock;
@@ -71,7 +77,7 @@ typedef struct					s_glob {
 	t_pngs						pngs;
 	t_acc						acc;
 	t_errors					errors;
-	size_t						flags;
+	t_args						args;
 }								t_glob;
 
 #endif //STRUCT_H

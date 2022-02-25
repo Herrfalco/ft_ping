@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 18:05:08 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/23 12:29:05 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/25 19:42:37 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@
 #include "const.h"
 #include "struct.h"
 #include "proto.h"
+#include "icmp.h"
 
 extern t_glob					glob;
 

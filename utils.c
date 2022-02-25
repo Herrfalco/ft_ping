@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 18:43:33 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/24 15:01:08 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/24 19:30:29 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,9 +91,24 @@ t_bool			mem_cmp(void *m1, void *m2, size_t *size) {
 	return (FALSE);
 }
 
-size_t		str_len(char *str) {
+size_t			str_len(char *str) {
 	size_t		len;
 
 	for (len = 0; str[len]; ++len);
 	return (len);
+}
+
+t_bool			str_2_uint(char *str, unsigned int *result) {
+	long		res = 0;
+
+	for (; *str; ++str) {
+		if (*str < '0' || *str > '9')
+			return (TRUE);
+		res *= 10;
+		res += *str - '0';
+		if (res > INT_MAX)
+			return (TRUE);
+	}
+	*result = res;
+	return (FALSE);
 }

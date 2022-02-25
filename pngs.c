@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 18:04:00 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/24 14:14:28 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/24 19:28:30 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,14 +33,13 @@ t_err		ping_2_pong(uint16_t seq, t_elem **pong) {
 	char			buff[MAX_SEQ_SZ];
 	struct timeval	now;
 
-	seq = 999;
 	for (*pong = glob.pngs.i.head; *pong && (*pong)->pkt.seq != seq; *pong = (*pong)->next)
 		prev = *pong;
 	if (!*pong) {
 		for	(*pong = glob.pngs.o.head; *pong && (*pong)->pkt.seq != seq; *pong = (*pong)->next);
 		if (!*pong) {
 			++glob.errors.err;
-			if (is_set(VERBOSE)) {
+			if (flag_set(F_V)) {
 				sprintf(buff, "%d", seq);
 				error(E_NO, "Pong", "Sequence not requested", buff);
 			}

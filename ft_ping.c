@@ -6,17 +6,13 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:52:47 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/24 15:02:07 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/25 20:26:52 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 //think about deleting unused var and includes
-//test all error responses
 //put static on private functions
-//verbose output :
-//			error(0, 0, _("packet too short (%d bytes) from %s"), cc,
-//				pr_addr(rts,from, sizeof *from));
-
+//verbose output...
 
 #include "header.h"
 
@@ -53,11 +49,14 @@ void		find_targ(char *arg) {
 }
 
 void		create_sock(void) {
-	uint8_t		ttl = TTL;
-	uint32_t	filt = 1 << ICMP_ECHO;
+	unsigned int	ttl = TTL;
+	uint32_t		filt = 1 << ICMP_ECHO;
 
 	if ((glob.sock = socket(PF_INET, SOCK_RAW, IPPROTO_ICMP)) < 0)
 		error(E_SCK_CRE, "Socket", "Can't be created", NULL);
+	opt_set(O_T, &ttl);
+	if (ttl > 255)
+		error(E_SCK_OPT, "Socket", "TTL value is too high", NULL);
 	if (setsockopt(glob.sock, IPPROTO_IP, IP_TTL, &ttl, sizeof(uint8_t))
 			|| setsockopt(glob.sock, SOL_RAW, ICMP_FILTER, &filt, sizeof(uint32_t)))
 		error(E_SCK_OPT, "Socket", "Can't be configured", NULL);
@@ -71,18 +70,14 @@ void		fill_body(uint8_t *body, uint32_t pat) {
 }
 
 int			main(int argc, char **argv) {
-	size_t		i;
-
 	if (argc < 2)
 		error(E_ARG, "Command line", "Need argument (-h for help)", NULL);
-	for (i = 1; i < (size_t)argc - 1; ++i)
-		add_flag(argv[i], TRUE);
-	add_flag(argv[i], FALSE);
-	if (is_set(HELP))
+	parse_arg(++argv);
+	if (flag_set(F_H))
 		disp_help();
 	if (getuid())
-		error(E_PERM, "Permissions", "Need to be run with sudo\n", NULL);
-	find_targ(argv[i]);
+		error(E_PERM, "Permissions", "Need to be run with sudo", NULL);
+	find_targ(argv[argc - 2]);
 	create_sock();
 	printf("PING %s (%s) %d(%d) bytes of data.\n", glob.targ.name ? glob.targ.name : glob.targ.addr,
 		glob.targ.addr, BODY_SZ, BODY_SZ + HDR_SZ + IP_HDR_SZ);

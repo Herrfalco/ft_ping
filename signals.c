@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/22 16:25:56 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/23 19:35:37 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/25 20:22:06 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,10 +52,13 @@ void		sig_quit(int signum) {
 	avg = fold_pongs(avg_acc);
 	max = fold_pongs(max_acc);
 	ewma = fold_pongs(ewma_acc);;
-	fprintf(stderr, "\r%ld/%ld packets, %ld%% loss, ",
+	fprintf(stderr, "\r%ld/%ld packets, %ld%% loss",
 			glob.pngs.o.size, glob.pngs.i.size, glob.pngs.i.size ?
 			100 - (glob.pngs.o.size * 100 / glob.pngs.i.size) : 0);
-	fprintf(stderr, "min/avg/ewma/max = %lld.%03lld/%lld.%03lld/%lld.%03lld/%lld.%03lld ms\n",
-			min / 1000, min % 1000, avg / 1000, avg % 1000, ewma / 8000, (ewma / 8) % 1000,
-			max / 1000, max % 1000);
+	if (glob.pngs.o.size) {
+		fprintf(stderr, ", min/avg/ewma/max = %lld.%03lld/%lld.%03lld/%lld.%03lld/%lld.%03lld ms",
+				min / 1000, min % 1000, avg / 1000, avg % 1000, ewma / 8000, (ewma / 8) % 1000,
+				max / 1000, max % 1000);
+	}
+	fprintf(stderr, "\n");
 }
