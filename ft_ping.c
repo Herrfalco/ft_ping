@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:52:47 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/25 20:26:52 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/25 21:26:45 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,6 +81,9 @@ int			main(int argc, char **argv) {
 	create_sock();
 	printf("PING %s (%s) %d(%d) bytes of data.\n", glob.targ.name ? glob.targ.name : glob.targ.addr,
 		glob.targ.addr, BODY_SZ, BODY_SZ + HDR_SZ + IP_HDR_SZ);
+	glob.args.inter = PING_INT;
+	opt_set(O_C, &glob.args.count);
+	opt_set(O_I, &glob.args.inter);
 	glob.pkt.type = ICMP_ECHO;
 	glob.pkt.id = endian_sw(getpid());
 	fill_body(glob.pkt.body, 0xaabbccdd);
@@ -89,7 +92,7 @@ int			main(int argc, char **argv) {
 	signal(SIGINT, sig_int);
 	signal(SIGQUIT, sig_quit);
 	ping(0);
-	alarm(PING_INT);
+	alarm(glob.args.inter);
 	while (TRUE)
 		pong();
 }

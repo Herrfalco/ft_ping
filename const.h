@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/22 16:27:53 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/25 20:33:58 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/25 21:26:10 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,16 +27,17 @@
 
 #define FLGS					"avh"
 #define OPT_SZ					2
-#define OPTS					"t"
-#define OPTS_NB					1
+#define OPTS					"tci"
+#define OPTS_NB					3
 
 #define HELP_TXT				"Usage:\n" \
-								"  ft_ping [options] <destination>\n" \
-								"\n" \
+								"  ft_ping [options] <destination>\n\n" \
 								"Options:\n" \
 								"  <destination>      dns name or ip address\n" \
 								"  -a				  use audible ping\n" \
+								"  -c <count>         stop after <count> replies" \
 								"  -h                 display help\n" \
+								"  -i <interval>      seconds between sending each packet\n" \
 								"  -v                 verbose output\n" \
 								"  -t <ttl>           define time to live\n"
 
@@ -48,6 +49,8 @@ typedef enum					e_flag {
 
 typedef enum					e_opt {
 	O_T,
+	O_C,
+	O_I,
 }								t_opt;
 
 typedef enum					e_bool {

@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/22 16:28:51 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/24 19:29:58 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/25 21:17:54 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,6 +67,8 @@ typedef struct					s_args {
 	size_t						flags;
 	size_t						opts_flags;
 	unsigned int				opts[OPTS_NB];		
+	unsigned int				count;
+	unsigned int				inter;
 }								t_args;
 
 typedef struct					s_glob {

@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/23 19:54:21 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/25 20:31:49 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/25 21:18:49 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,12 +18,15 @@ void		ping(int signum) {
 	t_icmp_pkt				pkt = glob.pkt;
 
 	(void)signum;
+	if (opt_set(O_C, NULL))
+		if (glob.args.count-- < 1)
+			sig_int(0);
 	pkt.seq = endian_sw(++seq);
 	pkt.sum = checksum(&pkt, sizeof(t_icmp_pkt));
 	if (sendto(glob.sock, &pkt, sizeof(t_icmp_pkt), 0, targ, sizeof(struct sockaddr)) < 0)
 		error(E_SND, "Ping", "Can't send packet", NULL);
 	new_ping(pkt);
-	alarm(PING_INT);
+	alarm(glob.args.inter);
 }
 
 void		disp_err(t_bool dup, t_ip_pkt *r_pkt) {
