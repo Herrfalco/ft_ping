@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 18:43:33 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/24 19:30:29 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/26 11:23:18 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,9 +106,32 @@ t_bool			str_2_uint(char *str, unsigned int *result) {
 			return (TRUE);
 		res *= 10;
 		res += *str - '0';
-		if (res > INT_MAX)
+		if (res > UINT_MAX)
 			return (TRUE);
 	}
 	*result = res;
+	return (FALSE);
+}
+
+t_bool			str_2_pat(char *str, t_pat *pat) {
+	char		byte;
+	t_bool		ho = FALSE;
+
+	for (; *str && pat->len < PAT_SZ; ++str, ho = ho ? FALSE : TRUE) {
+		if (*str >= '0' && *str <= '9') {
+			byte = *str - '0';
+		} else if (*str >= 'a' && *str <= 'f') {
+			byte = *str - 'a' + 10;
+		} else if (*str >= 'A' && *str <= 'F') {
+			byte = *str - 'A' + 10;
+		} else
+			return (TRUE);
+		if (ho)
+			pat->dat[pat->len++] |= byte;
+		else
+			pat->dat[pat->len] = byte << 4;
+	}
+	if (ho)
+		pat->dat[pat->len++] >>= 4;
 	return (FALSE);
 }

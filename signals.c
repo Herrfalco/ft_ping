@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/22 16:25:56 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/25 20:22:06 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/26 11:20:30 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,10 @@ void		sig_int(int signum) {
 	long long			min, max, avg, mdev;
 
 	(void)signum;	
+	//pas sur
+	if (glob.exit)
+		return;
+	glob.exit = TRUE;
 	gettimeofday(&now, NULL);
 	printf("\n--- %s ping statistics ---\n", glob.targ.name ? glob.targ.name : glob.targ.addr);
 	printf("%ld packets transmitted, %ld received", glob.pngs.i.size, glob.pngs.o.size);

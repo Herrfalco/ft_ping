@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/25 19:46:41 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/25 20:24:53 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/26 15:06:51 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,8 @@ void		treat_error(t_ip_pkt *pkt) {
 	char			addr[INET_ADDRSTRLEN] = { 0 };
 
 	++glob.errors.err;
+	if (flag_set(F_Q))
+		return;
 	inet_ntop(AF_INET, &pkt->ip_src, addr, INET_ADDRSTRLEN);
 	printf("From %s icmp_seq=%d ", addr,
 		endian_sw(((t_icmp_pkt *)(pkt->icmp_pkt.body + IP_HDR_SZ))->seq));

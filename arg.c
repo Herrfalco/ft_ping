@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   flag.c                                             :+:      :+:    :+:   */
+/*   arg.c                                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/23 19:58:36 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/25 13:39:43 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/26 11:36:38 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,47 +35,62 @@ t_bool		add_flag(char *arg) {
 }
 
 t_bool		add_opt(char ***arg) {
-	unsigned int		val;
+	t_bool		err = FALSE;
 
 	if (str_len(**arg) != OPT_SZ)
 		return (FALSE);
 	for (size_t i = 0; i < str_len(OPTS); ++i) {
 		if ((**arg)[1] == OPTS[i]) {
-			if (opt_set(i, NULL))
+			if (opt_set(i, T_ANY, NULL))
 				error(E_ARG, "Command line", "Duplicated argument", **arg);
 			if (!*(*arg + 1))
 				error(E_ARG, "Command line", "Need value for option", **arg);
-			if (str_2_uint(*(*arg + 1), &val))
+			switch (i) {
+				case O_P:
+					err = str_2_pat(*(*arg + 1), &glob.args.opts[i].pat);
+					break;
+				default:
+					err = str_2_uint(*(*arg + 1), &glob.args.opts[i].uint);
+			}
+			if (err)
 				error(E_ARG, "Command line", "Bad value for option", **arg);
-			++(*arg);
 			glob.args.opts_flags |= 0x1 << i;
-			glob.args.opts[i] = val;
+			++(*arg);
 			return (TRUE);
 		}
 	}
 	return (FALSE);
 }
 
-void		parse_arg(char **arg) {
+t_bool		parse_arg(char **arg) {
 	for (; *arg; ++arg) {
 		if (**arg != '-') {
 			if (*(arg + 1))
 				error(E_ARG, "Command line", "Unrecognized argument", *arg);
-			return;
+			return (FALSE);
 		}
 		if (str_len(*arg) < OPT_SZ || (!add_flag(*arg) && !add_opt(&arg)))
 			error(E_ARG, "Command line", "Unrecognized argument", *arg);
 	}
+	return (TRUE);
 }
 
 t_bool		flag_set(t_flag flg) {
 	return (!!(glob.args.flags & (0x1 << flg)));
 }
 
-t_bool		opt_set(t_flag flg, unsigned int *val) {
+t_bool		opt_set(t_flag flg, t_optype typ, t_optval *val) {
 	if (glob.args.opts_flags & (0x1 << flg)) {
-		if (val)
-			*val = glob.args.opts[flg];
+		switch (typ) {
+			case T_UINT:
+				val->uint = glob.args.opts[flg].uint;
+				break;
+			case T_PAT:
+				val->pat = glob.args.opts[flg].pat;
+				break;
+			default:
+				break;
+		}
 		return (TRUE);
 	}
 	return (FALSE);

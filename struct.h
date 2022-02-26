@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/22 16:28:51 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/25 21:17:54 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/26 15:42:51 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,11 +25,11 @@ typedef struct					s_icmp_pkt {
 	int16_t						sum;
 	uint16_t					id;
 	uint16_t					seq;
-	uint8_t						body[BODY_SZ];
+	uint8_t						body[MAX_BODY_SZ];
 } __attribute__((packed))		t_icmp_pkt;
 
 typedef struct					s_ip_pkt {
-	uint8_t						ip_hdr[IP_HDR_SZ - 2 * IN_ADDR_SZ];
+	uint8_t						ip_hdr[IP_HDR_SZ - 8];
 	uint32_t					ip_src;
 	uint32_t					ip_dst;
 	t_icmp_pkt					icmp_pkt;
@@ -63,12 +63,24 @@ typedef struct					s_errors {
 	size_t						err;
 }								t_errors;
 
+typedef struct					s_pat {
+	char						dat[PAT_SZ];
+	size_t						len;
+}								t_pat;
+
+typedef union					u_optval {
+	unsigned int				uint;
+	t_pat						pat;
+}								t_optval;
+
 typedef struct					s_args {
 	size_t						flags;
 	size_t						opts_flags;
-	unsigned int				opts[OPTS_NB];		
+	t_optval					opts[OPTS_NB];		
 	unsigned int				count;
 	unsigned int				inter;
+	unsigned int				body_sz;
+	t_pat						pat;
 }								t_args;
 
 typedef struct					s_glob {
@@ -80,6 +92,7 @@ typedef struct					s_glob {
 	t_acc						acc;
 	t_errors					errors;
 	t_args						args;
+	t_bool						exit;
 }								t_glob;
 
 #endif //STRUCT_H

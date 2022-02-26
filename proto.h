@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/22 16:30:37 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/25 19:48:08 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/26 11:37:10 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ void							error(t_err ret, char *fnc, char *msg, char *quote);
 t_bool							mem_cmp(void *m1, void *m2, size_t *size);
 size_t							str_len(char *str);
 t_bool							str_2_uint(char *str, unsigned int *result);
+t_bool							str_2_pat(char *str, t_pat *pat);
 
 void							new_ping(t_icmp_pkt pkt);
 t_err							ping_2_pong(uint16_t seq, t_elem **pong);
@@ -43,9 +44,9 @@ void							pong(void);
 
 void							treat_error(t_ip_pkt *pkt);
 
-void							parse_arg(char **arg);
+t_bool							parse_arg(char **arg);
 t_bool							flag_set(t_flag flg);
-t_bool							opt_set(t_flag flg, unsigned int *val);
+t_bool							opt_set(t_flag flg, t_optype typ, t_optval *val);
 void							disp_help(void);
 
 #endif //PROTO_H
