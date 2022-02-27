@@ -6,11 +6,11 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/25 19:46:41 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/26 15:06:51 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/27 13:42:59 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "header.h"
+#include "../hdrs/header.h"
 
 void		treat_error(t_ip_pkt *pkt) {
 	char			addr[INET_ADDRSTRLEN] = { 0 };

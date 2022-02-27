@@ -6,11 +6,11 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 18:43:33 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/27 11:52:11 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/27 13:43:18 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "header.h"
+#include "../hdrs/header.h"
 
 uint16_t	endian_sw(uint16_t src) {
 	return ((src >> 8) | (src << 8));

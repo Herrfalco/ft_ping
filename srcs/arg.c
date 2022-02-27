@@ -6,11 +6,11 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/23 19:58:36 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/27 09:34:24 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/27 13:42:56 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "header.h"
+#include "../hdrs/header.h"
 
 static t_bool		add_flag(char *arg) {
 	t_bool		found;

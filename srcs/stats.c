@@ -6,11 +6,11 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/16 11:49:44 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/27 12:03:23 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/27 13:43:15 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "header.h"
+#include "../hdrs/header.h"
 
 long long		min_acc(t_elem *el) {
 	if (el && (!glob.acc.flag || glob.acc.val > time_2_us(el->time))) {

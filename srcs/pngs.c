@@ -6,11 +6,11 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 18:04:00 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/27 09:37:09 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/27 13:43:10 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "header.h"
+#include "../hdrs/header.h"
 
 static void		push_elem(t_elem_lst *lst, t_elem *el) {
 	el->next = lst->head;
@@ -39,10 +39,7 @@ t_err		ping_2_pong(uint16_t seq, t_elem **pong) {
 		for	(*pong = glob.pngs.o.head; *pong && (*pong)->pkt.seq != seq; *pong = (*pong)->next);
 		if (!*pong) {
 			++glob.errors.err;
-			if (flag_set(F_V)) {
-				sprintf(buff, "%d", seq);
-				error(E_NO, "Pong", "Sequence not requested", buff);
-			}
+			error(E_NO, "Pong", "Sequence not requested", buff);
 			return (E_NO_MATCH);
 		}
 		return (E_DUP);

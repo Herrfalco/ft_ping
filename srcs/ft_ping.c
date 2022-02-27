@@ -6,13 +6,11 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:52:47 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/27 12:04:49 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/27 13:43:02 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-//verbose output...
-
-#include "header.h"
+#include "../hdrs/header.h"
 
 t_glob		glob = { 0 };
 

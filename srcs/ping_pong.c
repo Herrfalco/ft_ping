@@ -6,11 +6,11 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/23 19:54:21 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/27 12:01:56 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/27 13:43:07 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "header.h"
+#include "../hdrs/header.h"
 
 void		ping(int signum) {
 	struct sockaddr			*targ = (struct sockaddr *)&glob.targ.in;
@@ -121,10 +121,8 @@ void		pong(void) {
 	msg.msg_iovlen = 1;
 	if ((ret_val = recvmsg(glob.sock, &msg, 0)) < 0)
 		error(E_REC, "Ping", "Can't receive packet", NULL);
-	if (r_pkt.icmp_pkt.type != ICMP_ECHOREPLY) {
-		treat_error(&r_pkt);
-		return;
-	}
+	if (r_pkt.icmp_pkt.type != ICMP_ECHOREPLY)
+		return ((void)treat_error(&r_pkt));
 	if (r_pkt.icmp_pkt.id != glob.pkt.id)
 		return;
 	//print_body(&r_pkt.icmp_pkt);
