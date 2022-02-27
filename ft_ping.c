@@ -6,14 +6,12 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:52:47 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/27 09:35:03 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/27 11:41:32 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 //think about deleting unused var and includes
-//put static on private functions
 //verbose output...
-//better alarm each sec
 
 #include "header.h"
 
@@ -86,14 +84,12 @@ static void		init_glob(void) {
 			printf("%02x", glob.args.pat.dat[i]);
 		printf("\n");
 	}
-	glob.args.inter = PING_INT;
 	opt_set(O_C, T_UINT, (t_optval *)&glob.args.count);
-	opt_set(O_I, T_UINT, (t_optval *)&glob.args.inter);
 	glob.pkt.type = ICMP_ECHO;
 	glob.pkt.id = endian_sw(getpid());
 	fill_body();
-	gettimeofday(&glob.start, NULL);
-	glob.lst_pong = glob.start;
+	gettimeofday(&glob.time.start, NULL);
+	glob.time.lst_pong = glob.time.start;
 }
 
 static void		disp_help(void) {

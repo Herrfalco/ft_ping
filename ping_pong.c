@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/23 19:54:21 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/27 09:35:27 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/27 11:37:23 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,23 +19,27 @@ void		ping(int signum) {
 	struct timeval			now;
 	unsigned int			timeout;
 	unsigned int			deadline;
+	unsigned int			inter;
 
-	(void)signum;
 	gettimeofday(&now, NULL);
-	if ((opt_set(O_C, T_ANY, NULL)
-				&& glob.args.count-- < 1)
-			|| (opt_set(O_W, T_UINT, (t_optval *)&deadline)
-				&& duration(glob.start, now).tv_sec >= deadline)
+	if ((opt_set(O_W, T_UINT, (t_optval *)&deadline)
+				&& duration(glob.time.start, now).tv_sec >= deadline)
 			|| (glob.pngs.i.size > glob.pngs.o.size
 				&& opt_set(O_UPW, T_UINT, (t_optval *)&timeout)
-				&& duration(glob.lst_pong, now).tv_sec >= timeout))
+				&& duration(glob.time.lst_pong, now).tv_sec >= timeout))
 		sig_int(0);
+	if (signum && opt_set(O_I, T_UINT, (t_optval *)&inter)
+			&& duration(glob.time.lst_ping, now).tv_sec < inter)
+		return ((void)alarm(PING_INT));
+	if (opt_set(O_C, T_ANY, NULL) && glob.args.count-- < 1)
+		sig_int(0);
+	glob.time.lst_ping = now;
 	pkt.seq = endian_sw(++seq);
 	pkt.sum = checksum(&pkt, HDR_SZ + glob.args.body_sz);
 	if (sendto(glob.sock, &pkt, HDR_SZ + glob.args.body_sz, 0, targ, sizeof(struct sockaddr)) < 0)
 		error(E_SND, "Ping", "Can't send packet", NULL);
 	new_ping(pkt);
-	alarm(glob.args.inter);
+	alarm(PING_INT);
 }
 
 static void		disp_err(t_bool dup, t_ip_pkt *r_pkt, t_bool quiet) {
@@ -134,7 +138,7 @@ void		pong(void) {
 			dup = TRUE;
 			break;
 		default:
-			gettimeofday(&glob.lst_pong, NULL);
+			gettimeofday(&glob.time.lst_pong, NULL);
 	}
 	check_resp(ret_val, dup, &r_pkt, pong);
 }

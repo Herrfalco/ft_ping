@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/22 16:25:56 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/27 09:36:10 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/27 10:43:00 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ void		sig_int(int signum) {
 		printf(", +%ld errors", glob.errors.err);
 	printf(", %g%% packet loss, time %lldms\n", glob.pngs.i.size ?
 			100. - (glob.pngs.o.size * 100. / glob.pngs.i.size) : 0,
-			time_2_us(duration(glob.start, now)) / 1000);
+			time_2_us(duration(glob.time.start, now)) / 1000);
 	if (glob.pngs.o.size) {
 		min = fold_pongs(min_acc);
 		avg = fold_pongs(avg_acc);
