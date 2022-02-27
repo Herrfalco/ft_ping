@@ -6,13 +6,21 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/23 19:54:21 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/27 13:43:07 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/27 19:19:02 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../hdrs/header.h"
 
-void		ping(int signum) {
+static void		time_stamp(t_icmp_pkt *pkt, struct timeval *now) {
+	if (glob.args.body_sz < sizeof(struct timeval)) 
+		return;
+	for (size_t i = 0; i < sizeof(struct timeval); ++i) {
+		pkt->body[i] = ((char *)now)[i];
+	}
+}
+
+void			ping(int signum) {
 	struct sockaddr			*targ = (struct sockaddr *)&glob.targ.in;
 	static unsigned int		seq = 0;
 	t_icmp_pkt				pkt = glob.pkt;
@@ -33,21 +41,24 @@ void		ping(int signum) {
 		sig_int(0);
 	glob.time.lst_ping = now;
 	pkt.seq = endian_sw(++seq);
+	time_stamp(&pkt, &now);
 	pkt.sum = checksum(&pkt, HDR_SZ + glob.args.body_sz);
 	if (sendto(glob.sock, &pkt, HDR_SZ + glob.args.body_sz, 0, targ, sizeof(struct sockaddr)) < 0)
 		error(E_SND, "Ping", "Can't send packet", NULL);
-	new_ping(pkt);
+	new_ping(pkt, now);
 	alarm(PING_INT);
 }
 
-static void		disp_err(t_bool dup, t_ip_pkt *r_pkt) {
+static void		disp_err(t_bool dup, t_ip_pkt *r_pkt, struct timeval ping_time) {
 	size_t				cmp_idx = IN_ADDR_SZ;
+	t_icmp_pkt			pkt = glob.pkt;
 	uint16_t			sum;
 
 	if (dup) {
 		++glob.errors.dup;
 		if (!flag_set(F_Q))
-			printf(" (DUP!)");
+			printf(" (DUP!)\n");
+		return;
 	}
 	sum = r_pkt->icmp_pkt.sum;
 	r_pkt->icmp_pkt.sum = 0;
@@ -58,8 +69,9 @@ static void		disp_err(t_bool dup, t_ip_pkt *r_pkt) {
 	}
 	if (!flag_set(F_Q) && mem_cmp((void *)&glob.targ.in.sin_addr, (void *)&r_pkt->ip_src, &cmp_idx))
 		printf(" (DIFFERENT ADDRESS!)");
+	time_stamp(&pkt, &ping_time);
 	cmp_idx = glob.args.body_sz;
-	if (!flag_set(F_Q) && mem_cmp((void *)glob.pkt.body, (void *)r_pkt->icmp_pkt.body, &cmp_idx)) {
+	if (!flag_set(F_Q) && mem_cmp((void *)pkt.body, (void *)r_pkt->icmp_pkt.body, &cmp_idx)) {
 		printf("\nwrong data byte #%lu should be 0x%x but was 0x%x",
 			cmp_idx, glob.pkt.body[cmp_idx], r_pkt->icmp_pkt.body[cmp_idx]);
 		for (size_t i = 0; i < glob.args.body_sz; ++i) {
@@ -72,7 +84,8 @@ static void		disp_err(t_bool dup, t_ip_pkt *r_pkt) {
 		printf("\n");
 }
 
-static void		check_resp(int ret_val, t_bool dup, t_ip_pkt *r_pkt, t_elem *pong) {
+static void		check_resp(int ret_val, t_bool dup, t_ip_pkt *r_pkt, t_elem *pong,
+	struct timeval ping_time) {
 	char				addr[INET_ADDRSTRLEN] = { 0 };
 	long long			triptime;
 
@@ -92,19 +105,8 @@ static void		check_resp(int ret_val, t_bool dup, t_ip_pkt *r_pkt, t_elem *pong) 
 		else
 			printf("time=%lld.%03lld ms", triptime / 1000, triptime % 1000);
 	}
-	disp_err(dup, r_pkt);
+	disp_err(dup, r_pkt, ping_time);
 }
-
-/*
-void		print_body(t_icmp_pkt *pkt) {
-	for (size_t i = 0; i < glob.args.body_sz; ++i) {
-		if (!(i % 8))
-			printf("\n%02ld: ", i);
-		printf("%02x ", pkt->body[i]);
-	}
-	printf("\n");
-}
-*/
 
 void		pong(void) {
 	t_ip_pkt			r_pkt = { 0 };
@@ -112,6 +114,7 @@ void		pong(void) {
 	t_elem				*pong = NULL;
 	int					ret_val = 0;
 	t_bool				dup = FALSE;
+	struct timeval		ping_time;
 	struct iovec		io_vec =  {
 		.iov_base = &r_pkt,
 		.iov_len = IP_HDR_SZ + HDR_SZ + glob.args.body_sz,
@@ -125,8 +128,7 @@ void		pong(void) {
 		return ((void)treat_error(&r_pkt));
 	if (r_pkt.icmp_pkt.id != glob.pkt.id)
 		return;
-	//print_body(&r_pkt.icmp_pkt);
-	switch (ping_2_pong(r_pkt.icmp_pkt.seq, &pong)) {
+	switch (ping_2_pong(r_pkt.icmp_pkt.seq, &pong, &ping_time)) {
 		case E_NO_MATCH:
 			return;
 		case E_DUP:
@@ -135,5 +137,5 @@ void		pong(void) {
 		default:
 			gettimeofday(&glob.time.lst_pong, NULL);
 	}
-	check_resp(ret_val, dup, &r_pkt, pong);
+	check_resp(ret_val, dup, &r_pkt, pong, ping_time);
 }
