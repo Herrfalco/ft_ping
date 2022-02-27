@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/23 19:54:21 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/26 16:05:49 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/27 09:01:06 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,11 +16,20 @@ void		ping(int signum) {
 	struct sockaddr			*targ = (struct sockaddr *)&glob.targ.in;
 	static unsigned int		seq = 0;
 	t_icmp_pkt				pkt = glob.pkt;
+	struct timeval			now;
+	unsigned int			timeout;
+	unsigned int			deadline;
 
 	(void)signum;
-	if (opt_set(O_C, T_ANY, NULL))
-		if (glob.args.count-- < 1)
-			sig_int(0);
+	gettimeofday(&now, NULL);
+	if ((opt_set(O_C, T_ANY, NULL)
+				&& glob.args.count-- < 1)
+			|| (opt_set(O_W, T_UINT, (t_optval *)&deadline)
+				&& duration(glob.start, now).tv_sec >= deadline)
+			|| (glob.pngs.i.size > glob.pngs.o.size
+				&& opt_set(O_UPW, T_UINT, (t_optval *)&timeout)
+				&& duration(glob.lst_pong, now).tv_sec >= timeout))
+		sig_int(0);
 	pkt.seq = endian_sw(++seq);
 	pkt.sum = checksum(&pkt, HDR_SZ + glob.args.body_sz);
 	if (sendto(glob.sock, &pkt, HDR_SZ + glob.args.body_sz, 0, targ, sizeof(struct sockaddr)) < 0)
@@ -123,8 +132,9 @@ void		pong(void) {
 			return;
 		case E_DUP:
 			dup = TRUE;
-		default:
 			break;
+		default:
+			gettimeofday(&glob.lst_pong, NULL);
 	}
 	check_resp(ret_val, dup, &r_pkt, pong);
 }

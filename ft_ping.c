@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:52:47 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/26 19:13:28 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/27 08:58:44 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,6 @@
 //verbose output...
 //exit conflict with -c
 //ping exit value
-//check body size
 
 #include "header.h"
 
@@ -72,6 +71,22 @@ void		fill_body(void) {
 }
 
 void		init_glob(void) {
+	t_pat		pat = {
+		.dat = { 0xaa, 0xbb, 0xcc, 0xdd },
+		.len = 4,
+	};
+
+	glob.args.body_sz = BODY_SZ;
+	opt_set(O_S, T_UINT, (t_optval *)&glob.args.body_sz);
+	if (glob.args.body_sz > MAX_BODY_SZ)
+		error(E_ARG, "Command line", "Payload is too big", NULL);
+	glob.args.pat = pat;
+	if (opt_set(O_P, T_PAT, (t_optval *)&glob.args.pat) && !flag_set(F_Q)) {
+		printf("PATTERN: 0x");
+		for (size_t i = 0; i < glob.args.pat.len; ++i)
+			printf("%02x", glob.args.pat.dat[i]);
+		printf("\n");
+	}
 	glob.args.inter = PING_INT;
 	opt_set(O_C, T_UINT, (t_optval *)&glob.args.count);
 	opt_set(O_I, T_UINT, (t_optval *)&glob.args.inter);
@@ -79,14 +94,11 @@ void		init_glob(void) {
 	glob.pkt.id = endian_sw(getpid());
 	fill_body();
 	gettimeofday(&glob.start, NULL);
+	glob.lst_pong = glob.start;
 }
 
 int			main(int argc, char **argv) {
 	t_bool		no_addr;
-	t_pat		pat = {
-		.dat = { 0xaa, 0xbb, 0xcc, 0xdd },
-		.len = 4,
-	};
 
 	if (argc < 2)
 		error(E_ARG, "Command line", "Need argument (-h for help)", NULL);
@@ -99,29 +111,17 @@ int			main(int argc, char **argv) {
 	}
 	if (no_addr)
 		error(E_ARG, "Command line", "No domain or address specified", NULL);
-	glob.args.body_sz = BODY_SZ;
-	opt_set(O_S, T_UINT, (t_optval *)&glob.args.body_sz);
-	if (glob.args.body_sz > MAX_BODY_SZ)
-		error(E_ARG, "Command line", "Payload is too big", NULL);
-	glob.args.pat = pat;
-	if (opt_set(O_P, T_PAT, (t_optval *)&glob.args.pat) && !flag_set(F_Q)) {
-		printf("PATTERN: 0x");
-		for (size_t i = 0; i < glob.args.pat.len; ++i)
-			printf("%02x", glob.args.pat.dat[i]);
-		printf("\n");
-	}
+	init_glob();
 	if (getuid())
 		error(E_PERM, "Permissions", "Need to be run with sudo", NULL);
 	find_targ(argv[argc - 2]);
 	create_sock();
 	printf("PING %s (%s) %d(%d) bytes of data.\n", glob.targ.name ? glob.targ.name : glob.targ.addr,
 		glob.targ.addr, glob.args.body_sz, glob.args.body_sz + HDR_SZ + IP_HDR_SZ);
-	init_glob();
 	signal(SIGALRM, ping);
 	signal(SIGINT, sig_int);
 	signal(SIGQUIT, sig_quit);
 	ping(0);
-	alarm(glob.args.inter);
 	while (TRUE)
 		pong();
 }

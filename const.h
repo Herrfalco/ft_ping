@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/22 16:27:53 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/26 19:11:32 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/26 19:39:16 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,8 +29,8 @@
 
 #define FLGS				"avhqV"
 #define OPT_SZ				2
-#define OPTS				"tcips"
-#define OPTS_NB				5
+#define OPTS				"tcipswW"
+#define OPTS_NB				7
 
 #define HELP_TXT			"Usage:\n" \
 							"  ft_ping [options] <destination>\n\n" \
@@ -45,7 +45,9 @@
 							"  -s <size>          use <size> as number of data bytes to be sent\n" \
 							"  -t <ttl>           define time to live\n" \
 							"  -v                 verbose output\n" \
-							"  -V                 print version and exit\n"
+							"  -V                 print version and exit\n" \
+							"  -w <deadline>      reply wait <deadline> in seconds\n" \
+							"  -W <timeout>       time to wait for response\n"
 
 typedef enum				e_flag {
 	F_A,
@@ -61,6 +63,8 @@ typedef enum				e_opt {
 	O_I,
 	O_P,
 	O_S,
+	O_W,
+	O_UPW,
 }							t_opt;
 
 typedef enum				e_optype {

@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/22 16:28:51 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/26 15:42:51 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/27 08:49:34 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,6 +73,7 @@ typedef union					u_optval {
 	t_pat						pat;
 }								t_optval;
 
+//suppressing vars
 typedef struct					s_args {
 	size_t						flags;
 	size_t						opts_flags;
@@ -88,11 +89,11 @@ typedef struct					s_glob {
 	int							sock;
 	t_icmp_pkt					pkt;
 	struct timeval				start;
+	struct timeval				lst_pong;
 	t_pngs						pngs;
 	t_acc						acc;
 	t_errors					errors;
 	t_args						args;
-	t_bool						exit;
 }								t_glob;
 
 #endif //STRUCT_H
