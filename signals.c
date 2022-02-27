@@ -6,13 +6,13 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/22 16:25:56 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/27 09:28:27 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/27 09:36:10 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "header.h"
 
-int			get_ret_val(void) {
+static int			get_ret_val(void) {
 	unsigned int	count;
 
 	return (!glob.pngs.o.size

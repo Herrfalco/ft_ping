@@ -6,21 +6,20 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:52:47 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/27 09:30:12 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/27 09:35:03 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 //think about deleting unused var and includes
 //put static on private functions
 //verbose output...
-//ping exit value
 //better alarm each sec
 
 #include "header.h"
 
 t_glob		glob = { 0 };
 
-struct addrinfo		create_hints(void) {
+static struct addrinfo		create_hints(void) {
 	struct addrinfo		hints = { 0 };
 
 	hints.ai_family = AF_INET;
@@ -29,7 +28,7 @@ struct addrinfo		create_hints(void) {
 	return (hints);
 }
 
-void		find_targ(char *arg) {
+static void		find_targ(char *arg) {
 	struct in_addr		ip = { 0 };
 	struct addrinfo		hints = create_hints();
 	struct addrinfo		*inf = NULL;
@@ -50,7 +49,7 @@ void		find_targ(char *arg) {
 		freeaddrinfo(inf);
 }
 
-void		create_sock(void) {
+static void		create_sock(void) {
 	t_optval		ttl;
 	uint32_t		filt = 1 << ICMP_ECHO;
 
@@ -65,12 +64,12 @@ void		create_sock(void) {
 		error(E_SCK_OPT, "Socket", "Can't be configured", NULL);
 }
 
-void		fill_body(void) {
+static void		fill_body(void) {
 	for (size_t i = 0; i < glob.args.body_sz; ++i) 
 		glob.pkt.body[i] = glob.args.pat.dat[i % glob.args.pat.len];
 }
 
-void		init_glob(void) {
+static void		init_glob(void) {
 	t_pat		pat = {
 		.dat = { 0xaa, 0xbb, 0xcc, 0xdd },
 		.len = 4,
@@ -95,6 +94,11 @@ void		init_glob(void) {
 	fill_body();
 	gettimeofday(&glob.start, NULL);
 	glob.lst_pong = glob.start;
+}
+
+static void		disp_help(void) {
+	fprintf(stderr, "%s", HELP_TXT);
+	exit(2);
 }
 
 int			main(int argc, char **argv) {

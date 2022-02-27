@@ -6,13 +6,13 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/23 19:58:36 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/27 09:17:53 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/27 09:34:24 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "header.h"
 
-t_bool		add_flag(char *arg) {
+static t_bool		add_flag(char *arg) {
 	t_bool		found;
 	size_t		flgs = 0;
 
@@ -34,7 +34,7 @@ t_bool		add_flag(char *arg) {
 	return (TRUE);
 }
 
-t_bool		add_opt(char ***arg) {
+static t_bool		add_opt(char ***arg) {
 	t_bool		err = FALSE;
 
 	if (str_len(**arg) != OPT_SZ)
@@ -94,9 +94,4 @@ t_bool		opt_set(t_flag flg, t_optype typ, t_optval *val) {
 		return (TRUE);
 	}
 	return (FALSE);
-}
-
-void		disp_help(void) {
-	fprintf(stderr, "%s", HELP_TXT);
-	exit(2);
 }

@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/23 19:54:21 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/27 09:01:06 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/27 09:35:27 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ void		ping(int signum) {
 	alarm(glob.args.inter);
 }
 
-void		disp_err(t_bool dup, t_ip_pkt *r_pkt, t_bool quiet) {
+static void		disp_err(t_bool dup, t_ip_pkt *r_pkt, t_bool quiet) {
 	size_t				cmp_idx = IN_ADDR_SZ;
 	uint16_t			sum;
 
@@ -70,7 +70,7 @@ void		disp_err(t_bool dup, t_ip_pkt *r_pkt, t_bool quiet) {
 		printf("\n");
 }
 
-void		check_resp(int ret_val, t_bool dup, t_ip_pkt *r_pkt, t_elem *pong) {
+static void		check_resp(int ret_val, t_bool dup, t_ip_pkt *r_pkt, t_elem *pong) {
 	char				addr[INET_ADDRSTRLEN] = { 0 };
 	long long			triptime;
 	t_bool				quiet = FALSE;
