@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/16 11:49:44 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/25 19:17:24 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/27 12:03:23 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,16 +39,15 @@ long long		mdev_acc(t_elem *el) {
 	if (el) {
 		glob.acc.val += time_2_us(el->time);
 		glob.acc.tmp += time_2_us(el->time) * time_2_us(el->time);
-	} else if (!glob.pngs.o.size) {
+	} else if (!glob.pngs.o.size)
 		return (0);
-	} else {
+	else {
 		if (glob.acc.val < INT_MAX)
 			glob.acc.val = (glob.acc.tmp - ((glob.acc.val * glob.acc.val) / glob.pngs.o.size))
 				/ glob.pngs.o.size;
-		else {
+		else
 			glob.acc.val = (glob.acc.tmp / glob.pngs.o.size) - ((glob.acc.val / glob.pngs.o.size)
 				* (glob.acc.val / glob.pngs.o.size));
-		}
 		return (llsqrt(glob.acc.val));
 	}
 	return (glob.acc.val);

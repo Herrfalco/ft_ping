@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 18:05:08 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/25 19:42:37 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/27 11:44:09 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,10 +16,7 @@
 #include <stdio.h>
 #include <arpa/inet.h>
 #include <stdlib.h>
-#include <sys/types.h>
-#include <sys/socket.h>
 #include <netdb.h>
-#include <netinet/in.h>
 #include <unistd.h>
 #include <signal.h>
 #include <limits.h>

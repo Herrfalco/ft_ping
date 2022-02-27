@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 18:43:33 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/27 09:16:25 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/27 11:52:11 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,9 +50,8 @@ struct timeval	duration(struct timeval start, struct timeval end) {
 			error(E_BCK_TIME, "Clock", "Time goes backward !!!", NULL);
 		--result.tv_sec;
 		result.tv_usec = 1000000 + tmp;
-	} else {
+	} else
 		result.tv_usec = tmp;
-	}
 	return (result);
 }
 
@@ -119,13 +118,13 @@ t_bool			str_2_pat(char *str, t_pat *pat) {
 	t_bool		ho = FALSE;
 
 	for (; *str && pat->len < PAT_SZ; ++str, ho = ho ? FALSE : TRUE) {
-		if (*str >= '0' && *str <= '9') {
+		if (*str >= '0' && *str <= '9')
 			byte = *str - '0';
-		} else if (*str >= 'a' && *str <= 'f') {
+		else if (*str >= 'a' && *str <= 'f')
 			byte = *str - 'a' + 10;
-		} else if (*str >= 'A' && *str <= 'F') {
+		else if (*str >= 'A' && *str <= 'F')
 			byte = *str - 'A' + 10;
-		} else
+		else
 			return (TRUE);
 		if (ho)
 			pat->dat[pat->len++] |= byte;

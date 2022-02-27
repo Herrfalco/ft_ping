@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/23 19:54:21 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/27 11:37:23 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/27 12:01:56 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,9 +17,7 @@ void		ping(int signum) {
 	static unsigned int		seq = 0;
 	t_icmp_pkt				pkt = glob.pkt;
 	struct timeval			now;
-	unsigned int			timeout;
-	unsigned int			deadline;
-	unsigned int			inter;
+	unsigned int			timeout, deadline, inter;
 
 	gettimeofday(&now, NULL);
 	if ((opt_set(O_W, T_UINT, (t_optval *)&deadline)
@@ -42,26 +40,26 @@ void		ping(int signum) {
 	alarm(PING_INT);
 }
 
-static void		disp_err(t_bool dup, t_ip_pkt *r_pkt, t_bool quiet) {
+static void		disp_err(t_bool dup, t_ip_pkt *r_pkt) {
 	size_t				cmp_idx = IN_ADDR_SZ;
 	uint16_t			sum;
 
 	if (dup) {
 		++glob.errors.dup;
-		if (!quiet)
+		if (!flag_set(F_Q))
 			printf(" (DUP!)");
 	}
 	sum = r_pkt->icmp_pkt.sum;
 	r_pkt->icmp_pkt.sum = 0;
 	if (sum != checksum(&r_pkt->icmp_pkt, HDR_SZ + glob.args.body_sz)) {
 		++glob.errors.sum;
-		if (!quiet)
+		if (!flag_set(F_Q))
 			printf(" (BAD CHECKSUM!)");
 	}
-	if (!quiet && mem_cmp((void *)&glob.targ.in.sin_addr, (void *)&r_pkt->ip_src, &cmp_idx))
+	if (!flag_set(F_Q) && mem_cmp((void *)&glob.targ.in.sin_addr, (void *)&r_pkt->ip_src, &cmp_idx))
 		printf(" (DIFFERENT ADDRESS!)");
 	cmp_idx = glob.args.body_sz;
-	if (!quiet && mem_cmp((void *)glob.pkt.body, (void *)r_pkt->icmp_pkt.body, &cmp_idx)) {
+	if (!flag_set(F_Q) && mem_cmp((void *)glob.pkt.body, (void *)r_pkt->icmp_pkt.body, &cmp_idx)) {
 		printf("\nwrong data byte #%lu should be 0x%x but was 0x%x",
 			cmp_idx, glob.pkt.body[cmp_idx], r_pkt->icmp_pkt.body[cmp_idx]);
 		for (size_t i = 0; i < glob.args.body_sz; ++i) {
@@ -70,18 +68,17 @@ static void		disp_err(t_bool dup, t_ip_pkt *r_pkt, t_bool quiet) {
 			printf("%x ", r_pkt->icmp_pkt.body[i]);
 		}
 	}
-	if (!quiet)
+	if (!flag_set(F_Q))
 		printf("\n");
 }
 
 static void		check_resp(int ret_val, t_bool dup, t_ip_pkt *r_pkt, t_elem *pong) {
 	char				addr[INET_ADDRSTRLEN] = { 0 };
 	long long			triptime;
-	t_bool				quiet = FALSE;
 
 	if (flag_set(F_A))
 		printf("\a");
-	if (!(quiet = flag_set(F_Q))) {
+	if (!flag_set(F_Q)) {
 		inet_ntop(AF_INET, &r_pkt->ip_src, addr, INET_ADDRSTRLEN);
 		printf("%d bytes from %s: icmp_seq=%d ttl=%d ", ret_val - IP_HDR_SZ, addr,
 			endian_sw(r_pkt->icmp_pkt.seq), r_pkt->ip_hdr[TTL_IDX]);
@@ -95,7 +92,7 @@ static void		check_resp(int ret_val, t_bool dup, t_ip_pkt *r_pkt, t_elem *pong) 
 		else
 			printf("time=%lld.%03lld ms", triptime / 1000, triptime % 1000);
 	}
-	disp_err(dup, r_pkt, quiet);
+	disp_err(dup, r_pkt);
 }
 
 /*

@@ -6,11 +6,10 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:52:47 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/27 11:41:32 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/27 12:04:49 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-//think about deleting unused var and includes
 //verbose output...
 
 #include "header.h"
