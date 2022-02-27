@@ -6,11 +6,20 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/22 16:25:56 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/27 08:33:39 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/27 09:28:27 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "header.h"
+
+int			get_ret_val(void) {
+	unsigned int	count;
+
+	return (!glob.pngs.o.size
+			|| (opt_set(O_C, T_UINT, (t_optval *)&count)
+				&& opt_set(O_W, T_ANY, NULL)
+				&& glob.pngs.o.size < count));
+}
 
 void		sig_int(int signum) {
 	struct timeval		now;
@@ -43,7 +52,7 @@ void		sig_int(int signum) {
 				max / 1000, max % 1000, mdev / 1000, mdev % 1000);
 	}
 	free_pngs();
-	exit(0);
+	exit(get_ret_val());
 }
 
 void		sig_quit(int signum) {

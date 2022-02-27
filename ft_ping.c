@@ -6,15 +6,15 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:52:47 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/27 08:58:44 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/27 09:30:12 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 //think about deleting unused var and includes
 //put static on private functions
 //verbose output...
-//exit conflict with -c
 //ping exit value
+//better alarm each sec
 
 #include "header.h"
 

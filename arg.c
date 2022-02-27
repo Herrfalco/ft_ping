@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/23 19:58:36 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/26 11:36:38 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/27 09:17:53 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,5 +98,5 @@ t_bool		opt_set(t_flag flg, t_optype typ, t_optval *val) {
 
 void		disp_help(void) {
 	fprintf(stderr, "%s", HELP_TXT);
-	exit(0);
+	exit(2);
 }
