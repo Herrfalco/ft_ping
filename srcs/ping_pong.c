@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/23 19:54:21 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/27 19:19:02 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/28 11:44:50 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,31 +15,36 @@
 static void		time_stamp(t_icmp_pkt *pkt, struct timeval *now) {
 	if (glob.args.body_sz < sizeof(struct timeval)) 
 		return;
-	for (size_t i = 0; i < sizeof(struct timeval); ++i) {
+	for (size_t i = 0; i < sizeof(struct timeval); ++i)
 		pkt->body[i] = ((char *)now)[i];
-	}
 }
 
 void			ping(int signum) {
 	struct sockaddr			*targ = (struct sockaddr *)&glob.targ.in;
 	static unsigned int		seq = 0;
+	static size_t			lst_pong_sz = 0;
+	static struct timeval	lst_pong = { 0 };
+	static struct timeval	lst_ping = { 0 };
 	t_icmp_pkt				pkt = glob.pkt;
-	struct timeval			now;
-	unsigned int			timeout, deadline, inter;
+	struct timeval			now = { 0 };
+	unsigned int			timeout, deadline, inter = 0;
 
 	gettimeofday(&now, NULL);
+	if (glob.pngs.i.size == glob.pngs.o.size || glob.pngs.o.size > lst_pong_sz)
+		lst_pong = now;
+	lst_pong_sz = glob.pngs.o.size;
 	if ((opt_set(O_W, T_UINT, (t_optval *)&deadline)
-				&& duration(glob.time.start, now).tv_sec >= deadline)
-			|| (glob.pngs.i.size > glob.pngs.o.size
-				&& opt_set(O_UPW, T_UINT, (t_optval *)&timeout)
-				&& duration(glob.time.lst_pong, now).tv_sec >= timeout))
+				&& duration(glob.start, now).tv_sec >= deadline)
+			|| (opt_set(O_UPW, T_UINT, (t_optval *)&timeout)
+				&& duration(lst_pong, now).tv_sec >= timeout)
+			|| (opt_set(O_C, T_ANY, NULL)
+				&& glob.args.count < 1))
 		sig_int(0);
 	if (signum && opt_set(O_I, T_UINT, (t_optval *)&inter)
-			&& duration(glob.time.lst_ping, now).tv_sec < inter)
+			&& duration(lst_ping, now).tv_sec < inter)
 		return ((void)alarm(PING_INT));
-	if (opt_set(O_C, T_ANY, NULL) && glob.args.count-- < 1)
-		sig_int(0);
-	glob.time.lst_ping = now;
+	--glob.args.count;
+	lst_ping = now;
 	pkt.seq = endian_sw(++seq);
 	time_stamp(&pkt, &now);
 	pkt.sum = checksum(&pkt, HDR_SZ + glob.args.body_sz);
@@ -67,11 +72,13 @@ static void		disp_err(t_bool dup, t_ip_pkt *r_pkt, struct timeval ping_time) {
 		if (!flag_set(F_Q))
 			printf(" (BAD CHECKSUM!)");
 	}
-	if (!flag_set(F_Q) && mem_cmp((void *)&glob.targ.in.sin_addr, (void *)&r_pkt->ip_src, &cmp_idx))
+	if (flag_set(F_Q))
+		return;
+	if (mem_cmp((void *)&glob.targ.in.sin_addr, (void *)&r_pkt->ip_src, &cmp_idx))
 		printf(" (DIFFERENT ADDRESS!)");
 	time_stamp(&pkt, &ping_time);
 	cmp_idx = glob.args.body_sz;
-	if (!flag_set(F_Q) && mem_cmp((void *)pkt.body, (void *)r_pkt->icmp_pkt.body, &cmp_idx)) {
+	if (mem_cmp((void *)pkt.body, (void *)r_pkt->icmp_pkt.body, &cmp_idx)) {
 		printf("\nwrong data byte #%lu should be 0x%x but was 0x%x",
 			cmp_idx, glob.pkt.body[cmp_idx], r_pkt->icmp_pkt.body[cmp_idx]);
 		for (size_t i = 0; i < glob.args.body_sz; ++i) {
@@ -80,8 +87,7 @@ static void		disp_err(t_bool dup, t_ip_pkt *r_pkt, struct timeval ping_time) {
 			printf("%x ", r_pkt->icmp_pkt.body[i]);
 		}
 	}
-	if (!flag_set(F_Q))
-		printf("\n");
+	printf("\n");
 }
 
 static void		check_resp(int ret_val, t_bool dup, t_ip_pkt *r_pkt, t_elem *pong,
@@ -89,9 +95,9 @@ static void		check_resp(int ret_val, t_bool dup, t_ip_pkt *r_pkt, t_elem *pong,
 	char				addr[INET_ADDRSTRLEN] = { 0 };
 	long long			triptime;
 
-	if (flag_set(F_A))
-		printf("\a");
 	if (!flag_set(F_Q)) {
+		if (flag_set(F_A))
+			printf("\a");
 		inet_ntop(AF_INET, &r_pkt->ip_src, addr, INET_ADDRSTRLEN);
 		printf("%d bytes from %s: icmp_seq=%d ttl=%d ", ret_val - IP_HDR_SZ, addr,
 			endian_sw(r_pkt->icmp_pkt.seq), r_pkt->ip_hdr[TTL_IDX]);
@@ -133,9 +139,8 @@ void		pong(void) {
 			return;
 		case E_DUP:
 			dup = TRUE;
-			break;
 		default:
-			gettimeofday(&glob.time.lst_pong, NULL);
+			break;
 	}
 	check_resp(ret_val, dup, &r_pkt, pong, ping_time);
 }

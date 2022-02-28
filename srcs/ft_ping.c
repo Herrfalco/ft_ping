@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:52:47 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/27 13:43:02 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/28 11:45:03 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,8 +85,7 @@ static void		init_glob(void) {
 	glob.pkt.type = ICMP_ECHO;
 	glob.pkt.id = endian_sw(getpid());
 	fill_body();
-	gettimeofday(&glob.time.start, NULL);
-	glob.time.lst_pong = glob.time.start;
+	gettimeofday(&glob.start, NULL);
 }
 
 static void		disp_help(void) {

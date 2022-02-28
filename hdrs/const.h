@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/22 16:27:53 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/26 19:39:16 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/28 08:51:30 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,8 +36,8 @@
 							"  ft_ping [options] <destination>\n\n" \
 							"Options:\n" \
 							"  <destination>      dns name or ip address\n" \
-							"  -a				  use audible ping\n" \
-							"  -c <count>         stop after <count> replies" \
+							"  -a                 use audible ping\n" \
+							"  -c <count>         stop after <count> replies\n" \
 							"  -h                 display help\n" \
 							"  -i <interval>      seconds between sending each packet\n" \
 							"  -p <pattern>       contents of padding byte\n" \

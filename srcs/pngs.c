@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 18:04:00 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/27 19:18:37 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/02/28 11:28:23 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,6 @@ t_err		ping_2_pong(uint16_t seq, t_elem **pong, struct timeval *ping_time) {
 	if (!*pong) {
 		for	(*pong = glob.pngs.o.head; *pong && (*pong)->pkt.seq != seq; *pong = (*pong)->next);
 		if (!*pong) {
-			++glob.errors.err;
 			error(E_NO, "Pong", "Sequence not requested", buff);
 			return (E_NO_MATCH);
 		}
