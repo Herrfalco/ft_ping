@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 18:43:33 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/27 13:43:18 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/03/01 11:21:02 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,6 @@ long			 llsqrt(long long nb) {
 }
 
 void			error(t_err ret, char *fnc, char *msg, char *quote) {
-	(void)ret;
 	fprintf(stderr, "Error: ");	
 	if (fnc)
 		fprintf(stderr, "%s: ", fnc);	
