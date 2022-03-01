@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:52:47 by fcadet            #+#    #+#             */
-/*   Updated: 2022/03/01 08:24:38 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/03/01 11:57:41 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,24 +91,19 @@ static void		init_glob(void) {
 	gettimeofday(&glob.start, NULL);
 }
 
-static void		disp_help(void) {
-	fprintf(stderr, "%s", HELP_TXT);
-	exit(2);
-}
-
 int			main(int argc, char **argv) {
 	t_bool		no_addr;
 
 	if (argc < 2)
 		error(E_ARG, "Command line", "Need argument (-h for help)", NULL);
 	no_addr = parse_arg(++argv);
-	if (flag_set(F_H))
-		disp_help();
-	if (flag_set(F_UPV)) {
+	if (flag_set(F_H)) {
+		fprintf(stderr, "%s", HELP_TXT);
+		exit(2);
+	} else if (flag_set(F_UPV)) {
 		printf("ft_ping by fcadet s20220226\n");
 		exit(0);
-	}
-	if (no_addr)
+	} else if (no_addr)
 		error(E_ARG, "Command line", "No domain or address specified", NULL);
 	init_glob();
 	if (getuid())
