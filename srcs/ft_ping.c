@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:52:47 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/28 11:45:03 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/03/01 08:24:38 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,7 +81,10 @@ static void		init_glob(void) {
 			printf("%02x", glob.args.pat.dat[i]);
 		printf("\n");
 	}
-	opt_set(O_C, T_UINT, (t_optval *)&glob.args.count);
+	if (flag_set(F_O))
+		glob.args.count = 1;
+	else
+		opt_set(O_C, T_UINT, (t_optval *)&glob.args.count);
 	glob.pkt.type = ICMP_ECHO;
 	glob.pkt.id = endian_sw(getpid());
 	fill_body();

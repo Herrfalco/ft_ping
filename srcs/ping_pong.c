@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/23 19:54:21 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/28 11:44:50 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/03/01 08:25:44 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ void			ping(int signum) {
 				&& duration(glob.start, now).tv_sec >= deadline)
 			|| (opt_set(O_UPW, T_UINT, (t_optval *)&timeout)
 				&& duration(lst_pong, now).tv_sec >= timeout)
-			|| (opt_set(O_C, T_ANY, NULL)
+			|| ((opt_set(O_C, T_ANY, NULL) || flag_set(F_O))
 				&& glob.args.count < 1))
 		sig_int(0);
 	if (signum && opt_set(O_I, T_UINT, (t_optval *)&inter)

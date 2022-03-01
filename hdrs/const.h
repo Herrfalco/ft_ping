@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/22 16:27:53 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/28 08:51:30 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/03/01 08:22:41 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@
 #define PAT_SZ				16
 #define PING_INT			1
 
-#define FLGS				"avhqV"
+#define FLGS				"avhqVo"
 #define OPT_SZ				2
 #define OPTS				"tcipswW"
 #define OPTS_NB				7
@@ -40,6 +40,7 @@
 							"  -c <count>         stop after <count> replies\n" \
 							"  -h                 display help\n" \
 							"  -i <interval>      seconds between sending each packet\n" \
+							"  -o                 exit successfully after receiving one reply packet\n" \
 							"  -p <pattern>       contents of padding byte\n" \
 							"  -q                 quiet output\n" \
 							"  -s <size>          use <size> as number of data bytes to be sent\n" \
@@ -55,6 +56,7 @@ typedef enum				e_flag {
 	F_H,
 	F_Q,
 	F_UPV,
+	F_O,
 }							t_flag;
 
 typedef enum				e_opt {
