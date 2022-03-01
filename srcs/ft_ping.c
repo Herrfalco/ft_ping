@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:52:47 by fcadet            #+#    #+#             */
-/*   Updated: 2022/03/01 11:57:41 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/03/01 12:29:50 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,10 +38,9 @@ static void		find_targ(char *arg) {
 				&glob.targ.in.sin_addr,
 				glob.targ.addr, INET_ADDRSTRLEN);
 		glob.targ.name = arg;
+		freeaddrinfo(inf);
 	} else 
 		error(E_TARG, "Target search", "Can't find domain or address", arg);
-	if (inf)
-		freeaddrinfo(inf);
 }
 
 static void		create_sock(void) {
