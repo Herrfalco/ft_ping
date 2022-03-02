@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/22 16:30:37 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/27 19:10:23 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/03/02 08:22:06 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 #define PROTO_H
 
 uint16_t						endian_sw(uint16_t src);
-uint16_t						checksum(void *body, int size);
+uint16_t						checksum(void *body, size_t size);
 void							mem_set(void *data, size_t size, uint8_t val);
 long long						time_2_us(struct timeval tv);
 struct timeval					duration(struct timeval start, struct timeval end);

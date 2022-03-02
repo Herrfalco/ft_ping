@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/22 16:28:51 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/28 11:44:25 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/03/02 08:21:10 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ typedef struct					s_targ {
 typedef struct					s_icmp_pkt {
 	uint8_t						type;
 	uint8_t						code;
-	int16_t						sum;
+	uint16_t					sum;
 	uint16_t					id;
 	uint16_t					seq;
 	uint8_t						body[MAX_BODY_SZ];

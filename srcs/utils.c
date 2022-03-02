@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 18:43:33 by fcadet            #+#    #+#             */
-/*   Updated: 2022/03/01 11:21:02 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/03/02 08:21:50 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@ uint16_t	endian_sw(uint16_t src) {
 	return ((src >> 8) | (src << 8));
 }
 
-uint16_t	checksum(void *body, int size) {
+uint16_t	checksum(void *body, size_t size) {
 	uint16_t	*data = body;
 	uint32_t	result = 0;
 
