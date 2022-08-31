@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/22 16:30:37 by fcadet            #+#    #+#             */
-/*   Updated: 2022/03/03 08:47:25 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/08/31 09:12:32 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,6 @@ void							treat_error(t_ip_pkt *pkt);
 
 t_bool							parse_arg(char **arg);
 t_bool							flag_set(t_flag flg);
-t_bool							opt_set(t_flag flg, t_optype typ, t_optval *val);
+t_bool							opt_set(t_opt opt, t_optype typ, t_optval *val);
 
 #endif //PROTO_H

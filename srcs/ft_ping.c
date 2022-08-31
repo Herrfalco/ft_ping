@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/11 13:52:47 by fcadet            #+#    #+#             */
-/*   Updated: 2022/03/01 12:29:50 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/08/31 09:27:19 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,8 +105,8 @@ int			main(int argc, char **argv) {
 	} else if (no_addr)
 		error(E_ARG, "Command line", "No domain or address specified", NULL);
 	init_glob();
-	if (getuid())
-		error(E_PERM, "Permissions", "Need to be run with sudo", NULL);
+//	if (getuid())
+//		error(E_PERM, "Permissions", "Need to be run with sudo", NULL);
 	find_targ(argv[argc - 2]);
 	create_sock();
 	printf("PING %s (%s) %d(%d) bytes of data.\n", glob.targ.name ? glob.targ.name : glob.targ.addr,

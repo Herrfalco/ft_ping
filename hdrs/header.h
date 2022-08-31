@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 18:05:08 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/27 11:44:09 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/08/31 09:05:45 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 #include <stdio.h>
 #include <arpa/inet.h>
+#include <sys/time.h>
 #include <stdlib.h>
 #include <netdb.h>
 #include <unistd.h>

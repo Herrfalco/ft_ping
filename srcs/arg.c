@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/23 19:58:36 by fcadet            #+#    #+#             */
-/*   Updated: 2022/02/27 13:42:56 by fcadet           ###   ########.fr       */
+/*   Updated: 2022/08/31 09:12:11 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,14 +79,14 @@ t_bool		flag_set(t_flag flg) {
 	return (!!(glob.args.flags & (0x1 << flg)));
 }
 
-t_bool		opt_set(t_flag flg, t_optype typ, t_optval *val) {
-	if (glob.args.opts_flags & (0x1 << flg)) {
+t_bool		opt_set(t_opt opt, t_optype typ, t_optval *val) {
+	if (glob.args.opts_flags & (0x1 << opt)) {
 		switch (typ) {
 			case T_UINT:
-				val->uint = glob.args.opts[flg].uint;
+				val->uint = glob.args.opts[opt].uint;
 				break;
 			case T_PAT:
-				val->pat = glob.args.opts[flg].pat;
+				val->pat = glob.args.opts[opt].pat;
 				break;
 			default:
 				break;
