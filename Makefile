@@ -16,6 +16,7 @@ all	:	$(NAME)
 
 $(NAME)	:	$(OBJS)
 		$(CC) $(CFLAGS) $^ -o $@
+		sudo setcap 'cap_net_admin,cap_net_raw+ep' $@
 %.o	:	%.c
 		$(CC) $(CFLAGS) -c $< -o $@
 
